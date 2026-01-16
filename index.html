@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>History of Iran Layered</title>
+  <style>
+    :root {
+      --bg: #0b0f16;
+      --fg: #e8eef7;
+      --muted: #9fb0c6;
+      --axis: #223049;
+      --labelWidth: 560px;
+      --panelW: 340px;
+      --accent: #7fb4ff;
+    }
+    html, body { height: 100%; margin: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    #wrap { position: fixed; inset: 0; display: grid; grid-template-rows: auto 1fr; }
+    header { padding: 12px 16px; border-bottom: 1px solid #141c2a; display: flex; align-items: baseline; gap: 16px; }
+    header h1 { margin: 0; font-size: clamp(16px, 2.2vw, 22px); font-weight: 650; letter-spacing: 0.2px; }
+    header .sub { color: var(--muted); font-size: clamp(11px, 1.5vw, 13px); }
+
+    #stage { position: relative; }
+    #viz { width: 100%; height: 100%; min-height: 640px; display: block; cursor: grab; }
+    #viz.dragging { cursor: grabbing; }
+
+    /* Controls */
+    #panel { position: absolute; bottom: 16px; right: 16px; width: var(--panelW); max-width: 48vw; color: var(--fg);
+      background: linear-gradient(180deg, rgba(28,36,52,0.7), rgba(20,28,42,0.8)); backdrop-filter: blur(14px) saturate(120%);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35); border-radius: 14px; padding: 12px 14px; transition: transform .18s ease; overflow: visible; }
+    #panel.collapsed { transform: translateX(calc(100% - 28px)); }
+    #panel h2 { margin: 0 0 8px 0; font-size: 14px; font-weight: 650; letter-spacing: 0.2px; color: var(--muted); display:flex; align-items:center; justify-content:space-between; }
+    #panel .facts { margin: 6px 0 10px 0; font-size: 12px; line-height: 1.5; color: var(--muted); }
+    #panel .facts b { color: var(--fg); }
+    #panel .row { display:flex; gap:8px; align-items:center; flex-wrap: wrap; }
+    #panel .section { margin: 8px 0; padding: 8px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
+
+    .toggle { appearance: none; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.06); color: var(--fg);
+      border-radius: 999px; padding: 6px 10px; font-size: 12px; cursor: pointer; user-select: none; }
+    .toggle.on { background: rgba(127,180,255,0.18); border-color: var(--accent); box-shadow: 0 0 0 1px rgba(127,180,255,0.35) inset; }
+
+    /* Panel lip */
+    #panel-tab { position: absolute; left: -28px; top: 0; bottom: 0; width: 28px; display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(180deg, rgba(28,36,52,0.9), rgba(20,28,42,0.9)); border: 1px solid rgba(255,255,255,0.10); border-right: none; border-radius: 8px 0 0 8px; cursor: pointer; }
+    #panel-tab span { font-size: 13px; color: var(--muted); transform: translateY(1px); }
+
+    .slider { width: 100%; display:flex; gap:8px; align-items:center; }
+    .slider input[type=range] { -webkit-appearance:none; appearance:none; width:100%; height:6px; background:rgba(255,255,255,0.12); border-radius:999px; outline:none; }
+    .slider input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:14px; height:14px; border-radius:50%; background:#7fb4ff; border:1px solid rgba(255,255,255,0.7); box-shadow:0 0 0 3px rgba(127,180,255,0.25); cursor:pointer; }
+    .slider .value { font-size:11px; color: var(--muted); min-width:44px; text-align:right; }
+
+    .tick text { fill: var(--muted); font-size: 9px; }
+    .tick line, .axis-line { stroke: var(--axis); stroke-width: 1; shape-rendering: crispEdges; }
+    .layer { shape-rendering: geometricPrecision; }
+    .label { font-size: clamp(8.0px, 1.0vw, 9.3px); fill: var(--fg); alignment-baseline: middle; }
+    .label tspan.range { fill: var(--muted); }
+    .swatch { rx: 3; }
+    .brace { fill: none; stroke-width: 1.8; stroke-linecap: round; }
+    .tickcap { stroke-width: 1.8; stroke-linecap: round; }
+    .note { fill: var(--muted); font-size: clamp(9px, 1.1vw, 11px); }
+
+    /* Hover focus mode */
+    #viz.dim-mode [data-name] { opacity: 0.12; transition: opacity .12s ease; }
+    #viz.dim-mode .matched { opacity: 1 !important; filter: drop-shadow(0 0 3px rgba(255,255,255,0.25)); }
+    #viz.dim-mode .overlap-blend { opacity: 0.12 !important; }
+  </style>
+</head>
+<body>
+  <div id="wrap">
+    <header>
+      <h1>History of Iran Layered</h1>
+      <div class="sub">Bottom = earliest (Proto‑Elamite, 3200 BCE). Top = most recent (Islamic Republic, 2025). Scroll to zoom, drag to pan. Double‑click to reset.</div>
+    </header>
+    <div id="stage">
+      <svg id="viz" role="img" aria-label="Vertical sediment timeline of Iranian ruling entities, zoomable and pannable"></svg>
+      <div id="panel">
+        <div id="panel-tab" title="Toggle options"><span>◀</span></div>
+        <h2>
+          <span id="options-title">Options</span>
+        </h2>
+        <div id="facts" class="facts"></div>
+        <div class="section">
+          <div class="row">
+            <button id="toggle-overlap" class="toggle on" aria-pressed="true">Overlap: SPLIT</button>
+            <button id="toggle-flags" class="toggle on" aria-pressed="true">Flags: ON</button>
+            <button id="toggle-labelpos" class="toggle" aria-pressed="false">Labels: SIDE</button>
+            <button id="toggle-exclude-elam" class="toggle" aria-pressed="false">Exclude Elam: OFF</button>
+            <button id="toggle-lang" class="toggle" aria-pressed="false">Language: EN</button>
+          </div>
+          <div class="row" style="margin-top:6px;">
+            <button id="toggle-golden" class="toggle" aria-pressed="false">Golden Age: OFF</button>
+            <button id="toggle-dark" class="toggle" aria-pressed="false">Dark Age: OFF</button>
+            <button id="toggle-religion" class="toggle" aria-pressed="false">Religion: OFF</button>
+            <button id="toggle-foreignrule" class="toggle" aria-pressed="false">Foreign Rule: OFF</button>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="row slider">
+            <label id="width-label" for="width-slider" style="font-size:12px;color:var(--muted);min-width:110px;">Graphic width</label>
+            <input id="width-slider" type="range" min="5" max="90" step="1" value="52" />
+            <div id="width-value" class="value">52%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =====================
+    // Setup & utilities
+    // =====================
+    const svg = document.getElementById('viz');
+    try { svg.setAttributeNS('http://www.w3.org/2000/xmlns/','xmlns:xlink','http://www.w3.org/1999/xlink'); } catch(_) {}
+
+    const elTitle = document.querySelector('header h1');
+    const elSub = document.querySelector('header .sub');
+    const elPanel = document.getElementById('panel');
+    const elPanelTab = document.getElementById('panel-tab');
+    const elPanelTitle = document.getElementById('options-title');
+    const elFacts = document.getElementById('facts');
+    const elWidthSlider = document.getElementById('width-slider');
+    const elWidthValue = document.getElementById('width-value');
+
+    const btnOverlap = document.getElementById('toggle-overlap');
+    const btnFlags = document.getElementById('toggle-flags');
+    const btnLabelPos = document.getElementById('toggle-labelpos');
+    const btnExcludeElam = document.getElementById('toggle-exclude-elam');
+    const btnLang = document.getElementById('toggle-lang');
+    const btnGolden = document.getElementById('toggle-golden');
+    const btnDark = document.getElementById('toggle-dark');
+    const btnReligion = document.getElementById('toggle-religion');
+    const btnForeignRule = document.getElementById('toggle-foreignrule');
+
+    const bce = (y) => -(y - 1); // astronomical numbering: 1 BCE = 0
+
+    // Locale helpers
+    function toFaDigits(str){ return String(str).replace(/[0-9]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
+    function fmtNum(n){ const s = (typeof n === 'number') ? (''+n) : String(n); return (lang==='fa') ? toFaDigits(s) : s; }
+    function toLabelEN(ay){ return ay <= 0 ? (1 - ay) + ' BCE' : String(ay); }
+    function toLabelLocal(ay){ const s = (lang==='fa') ? (ay<=0 ? (1 - ay) + ' پ.م' : String(ay)) : toLabelEN(ay); return (lang==='fa') ? toFaDigits(s) : s; }
+    function percentSym(){ return (lang==='fa') ? '٪' : '%'; }
+    function fmtPct(val){ const s = Number(val).toFixed(1); return fmtNum(s) + percentSym(); }
+
+    // Color helpers
+    function hslToHex(h, s, l) {
+      s /= 100; l /= 100;
+      const k = n => (n + h/30) % 12;
+      const a = s * Math.min(l, 1 - l);
+      const f = n => l - a * Math.max(-1, Math.min(k(n)-3, Math.min(9-k(n), 1)));
+      const toHex = x => ('0' + Math.round(255 * x).toString(16)).slice(-2);
+      return '#' + toHex(f(0)) + toHex(f(8)) + toHex(f(4));
+    }
+    function hexToRgb(hex){ const s=hex.replace('#',''); const n=parseInt(s,16); return {r:(n>>16)&255, g:(n>>8)&255, b:(n)&255}; }
+    function rgbToHex(r,g,b){ const t=v=>('0'+v.toString(16)).slice(-2); return '#' + t(r)+t(g)+t(b); }
+    function blendColors(hexes){ const rgbs=hexes.map(hexToRgb); const n=rgbs.length; const s=rgbs.reduce((a,c)=>({r:a.r+c.r/n,g:a.g+c.g/n,b:a.b+c.b/n}),{r:0,g:0,b:0}); return rgbToHex(Math.round(s.r),Math.round(s.g),Math.round(s.b)); }
+
+    function measureLabelWidth(str){
+      const tmp=document.createElementNS('http://www.w3.org/2000/svg','text');
+      tmp.setAttribute('class','label'); tmp.setAttribute('x',-9999); tmp.setAttribute('y',-9999);
+      if(lang==='fa'){ tmp.setAttribute('direction','rtl'); tmp.setAttribute('unicode-bidi','plaintext'); tmp.setAttribute('text-anchor','start'); }
+      tmp.textContent=str; svg.appendChild(tmp);
+      const w = typeof tmp.getComputedTextLength==='function' ? tmp.getComputedTextLength() : tmp.getBBox().width;
+      svg.removeChild(tmp); return w;
+    }
+
+    // =====================
+    // i18n
+    // =====================
+    let lang = 'en';
+    const I18N = {
+      en: {
+        title: 'History of Iran Layered',
+        subtitle: 'Bottom = earliest (Proto‑Elamite, 3200 BCE). Top = most recent (Islamic Republic, 2025). Scroll to zoom, drag to pan. Double‑click to reset.',
+        optionsTitle: 'Options',
+        overlap: 'Overlap', split: 'SPLIT', blend: 'BLEND',
+        flags: 'Flags',
+        labels: 'Labels', side: 'SIDE', inside: 'INSIDE',
+        excludeElam: 'Exclude Elam',
+        languageShort: 'Language', langEN: 'EN', langFA: 'FA',
+        to: 'to',
+        goldenAge: 'Golden Age', darkAge: 'Dark Age',
+        religion: 'Religion',
+        foreignRule: 'Foreign Rule/Occupation',
+        factsTitle: 'Facts', factsGold: 'Golden', factsDark: 'Dark', factsForeign: 'Foreign rule', factsZ:'Zoroastrian', factsSunni:'Sunni', factsShia:'Shia', factsPoly:'Polytheism',
+        pctNoteInc: 'Percentages are relative to the active span (Elam included).',
+        pctNoteExc: 'Percentages are relative to the active span (Elam excluded).',
+        footer: 'Overlap: SPLIT = equal strips per ruler; BLEND = averaged color. Small/clustered labels dim at full zoom-out, then fade in as you zoom.',
+        widthLabel: 'Graphic width'
+      },
+      fa: {
+        title: 'تاریخ لایه‌ای ایران',
+        subtitle: 'پایین = قدیمی‌ترین (پیش‌ـایلامی، ۳۲۰۰ پ.م). بالا = جدیدترین (جمهوری اسلامی، ۲۰۲۵). با اسکرول بزرگ‌نمایی، با کشیدن جابه‌جا، دوبارکلیک بازنشانی.',
+        optionsTitle: 'گزینه‌ها',
+        overlap: 'هم‌پوشانی', split: 'تقسیم', blend: 'ترکیب',
+        flags: 'پرچم‌ها',
+        labels: 'برچسب‌ها', side: 'کنار', inside: 'داخل',
+        excludeElam: 'حذف ایلام',
+        languageShort: 'زبان', langEN: 'English', langFA: 'فارسی',
+        to: 'تا',
+        goldenAge: 'دوران طلایی', darkAge: 'دوران سیاه',
+        religion: 'ادیان غالب',
+        foreignRule: 'حاکمیت/اشغال بیگانه',
+        factsTitle: 'واقعیت‌ها', factsGold: 'طلایی', factsDark: 'سیاه', factsForeign: 'بیگانه', factsZ:'زرتشتی', factsSunni:'سنی', factsShia:'شیعه', factsPoly:'چندخدایی',
+        pctNoteInc: 'درصدها نسبت به بازهٔ فعال تاریخ ایران محاسبه شده‌اند (با ایلام).',
+        pctNoteExc: 'درصدها نسبت به بازهٔ فعال تاریخ ایران محاسبه شده‌اند (بدون ایلام).',
+        footer: 'هم‌پوشانی: «تقسیم» = تقسیم برابر؛ «ترکیب» = میانگین رنگ. برچسب‌های کوچک/خوشه‌ای در نمای کلی کم‌رنگ‌اند و با بزرگ‌نمایی پررنگ می‌شوند.',
+        widthLabel: 'عرض نمودار'
+      }
+    };
+
+    const DYNASTY_FA = {
+      'Proto‑Elamite':'پیش‌آیلامی','Old Elamite':'ایلامی کهن','Middle Elamite':'ایلامی میانه','Neo‑Elamite':'ایلامی نو',
+      'Median Empire':'شاهنشاهی ماد','Assyro‑Babylonian Control':'حاکمیت آشوری‌ـبابلی','Achaemenid Empire':'شاهنشاهی هخامنشی',
+      'Macedonian/Argead Rule':'حکومت مقدونی/آرگید','Seleucid Empire (in Iran)':'سلوکیان (در ایران)',
+      'Parthian (Arsacid) Empire':'شاهنشاهی اشکانی','Sasanian Empire':'شاهنشاهی ساسانی',
+      'Rashidun Caliphate':'خلافت راشدین','Umayyad Caliphate':'خلافت اموی','Abbasid Caliphate (direct control)':'خلافت عباسی (کنترل مستقیم)',
+      'Tahirid Emirate (Khorasan)':'امارت طاهریان (خراسان)','Saffarid Emirate':'امارت صفاریان','Samanid Empire':'سامانیان',
+      'Ziyarid Dynasty':'زیاریان','Buyid Confederation':'آل بویه','Ghaznavid Empire':'غزنویان',
+      'Great Seljuk Empire':'سلجوقیان بزرگ','Khwarazmian Empire':'خوارزمشاهیان','Mongol Conquest Intermezzo':'میان‌دورهٔ فتح مغول',
+      'Ilkhanate':'ایلخانیان','Jalayirids':'جلایریان','Chobanids':'چوپانیان','Injuids':'اینجویان',
+      'Muzaffarids':'مظفریان','Sarbadars':'سربداران','Kartids':'کرتیان',
+      'Timurid Empire':'تیموریان','Qara Qoyunlu':'قره‌قویونلو','Aq Qoyunlu':'آق‌قویونلو',
+      'Safavid Empire':'صفویان','Hotak (Afghan) Occupation':'اشغال هوتکی (افغان)','Safavid Restoration':'احیای صفوی',
+      'Afsharid Empire':'افشاریان','Zand Dynasty':'زندیان','Qajar Dynasty':'قاجاریان','Pahlavi Dynasty':'پهلوی',
+      'Islamic Republic of Iran':'جمهوری اسلامی ایران'
+    };
+
+    function t(k){ return (I18N[lang] && I18N[lang][k]) || (I18N.en[k]||k); }
+    function dynastyName(d){ return (lang==='fa') ? (DYNASTY_FA[d.name]||d.name) : d.name; }
+
+    // =====================
+    // Data
+    // =====================
+    const entries = [
+      { name: 'Proto‑Elamite', start: bce(3200), end: bce(2700), foreign: false, group: 'Elam' },
+      { name: 'Old Elamite', start: bce(2700), end: bce(1600), foreign: false, group: 'Elam' },
+      { name: 'Middle Elamite', start: bce(1600), end: bce(1100), foreign: false, group: 'Elam' },
+      { name: 'Neo‑Elamite', start: bce(1100), end: bce(646), foreign: false, group: 'Elam' },
+
+      { name: 'Median Empire', start: bce(678), end: bce(550), foreign: false },
+      { name: 'Assyro‑Babylonian Control', start: bce(646), end: bce(539), foreign: true },
+      { name: 'Achaemenid Empire', start: bce(550), end: bce(330), foreign: false },
+      { name: 'Macedonian/Argead Rule', start: bce(330), end: bce(312), foreign: true },
+      { name: 'Seleucid Empire (in Iran)', start: bce(312), end: bce(247), foreign: true },
+      { name: 'Parthian (Arsacid) Empire', start: bce(247), end: 224, foreign: false },
+      { name: 'Sasanian Empire', start: 224, end: 651, foreign: false },
+      { name: 'Rashidun Caliphate', start: 651, end: 661, foreign: true },
+      { name: 'Umayyad Caliphate', start: 661, end: 750, foreign: true },
+      { name: 'Abbasid Caliphate (direct control)', start: 750, end: 861, foreign: true },
+      { name: 'Tahirid Emirate (Khorasan)', start: 821, end: 873, foreign: false },
+      { name: 'Saffarid Emirate', start: 861, end: 1003, foreign: false },
+      { name: 'Samanid Empire', start: 819, end: 999, foreign: false },
+      { name: 'Ziyarid Dynasty', start: 931, end: 1090, foreign: false },
+      { name: 'Buyid Confederation', start: 934, end: 1062, foreign: false },
+      { name: 'Ghaznavid Empire', start: 977, end: 1186, foreign: true },
+      { name: 'Great Seljuk Empire', start: 1037, end: 1194, foreign: true },
+      { name: 'Khwarazmian Empire', start: 1194, end: 1231, foreign: true },
+      { name: 'Mongol Conquest Intermezzo', start: 1220, end: 1256, foreign: true },
+      { name: 'Ilkhanate', start: 1256, end: 1335, foreign: true },
+      { name: 'Jalayirids', start: 1335, end: 1432, foreign: true },
+      { name: 'Chobanids', start: 1338, end: 1357, foreign: true },
+      { name: 'Injuids', start: 1335, end: 1357, foreign: false },
+      { name: 'Muzaffarids', start: 1335, end: 1393, foreign: false },
+      { name: 'Sarbadars', start: 1337, end: 1381, foreign: false },
+      { name: 'Kartids', start: 1245, end: 1389, foreign: false },
+      { name: 'Timurid Empire', start: 1370, end: 1507, foreign: true },
+      { name: 'Qara Qoyunlu', start: 1374, end: 1468, foreign: true },
+      { name: 'Aq Qoyunlu', start: 1378, end: 1501, foreign: true },
+      { name: 'Safavid Empire', start: 1501, end: 1722, foreign: false },
+      { name: 'Hotak (Afghan) Occupation', start: 1722, end: 1729, foreign: true },
+      { name: 'Safavid Restoration', start: 1729, end: 1736, foreign: false },
+      { name: 'Afsharid Empire', start: 1736, end: 1796, foreign: false },
+      { name: 'Zand Dynasty', start: 1751, end: 1794, foreign: false },
+      { name: 'Qajar Dynasty', start: 1789, end: 1925, foreign: false },
+      { name: 'Pahlavi Dynasty', start: 1925, end: 1979, foreign: false },
+      { name: 'Islamic Republic of Iran', start: 1979, end: 2025, foreign: false }
+    ];
+
+    const IMAGE_FILLS = {
+      'Median Empire': 'https://preview.redd.it/medes-empire-flag-corrected-v0-2huvula06e8b1.jpg?width=1080&crop=smart&auto=webp&s=05d50718f24ba7860ecd287706e8ae385372ffe6',
+      'Achaemenid Empire': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Standard_of_Cyrus_the_Great.svg/1024px-Standard_of_Cyrus_the_Great.svg.png',
+      'Macedonian/Argead Rule': 'https://static.wixstatic.com/media/fbe150_f4bd28b995e8493d9992919676a8c16d~mv2.webp/v1/fill/w_3300,h_2200,al_c,q_90,enc_auto/macedonian.webp',
+      'Seleucid Empire (in Iran)': 'https://static.wixstatic.com/media/fbe150_8bc877788a8f48589fa2c9c0d5e226d7~mv2.webp/v1/fill/w_960,h_640,al_c,q_85,enc_auto/seleuidempire.webp',
+      'Parthian (Arsacid) Empire': 'https://static.wixstatic.com/media/fbe150_5c1a05e588184909b52d79dc7dea7ae0~mv2.webp/v1/fill/w_2560,h_1711,al_c,q_90,enc_auto/parthian.webp',
+      'Rashidun Caliphate': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Rashidun_Caliphate_Flag.png/1024px-Rashidun_Caliphate_Flag.png',
+      'Abbasid Caliphate (direct control)': 'https://static.wixstatic.com/media/fbe150_8ed1bfbb73e04e08a407393c26e58c27~mv2.jpg/v1/fill/w_736,h_414,al_c,q_80,enc_auto/abbasid%20calliphae.jpg',
+      'Tahirid Emirate (Khorasan)': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Flag_of_the_Tahirids.svg/1280px-Flag_of_the_Tahirids.svg.png?20240114193849',
+      'Samanid Empire': 'https://static.wixstatic.com/media/fbe150_213c52d382e047d394587f936b9d7908~mv2.webp/v1/fill/w_1000,h_666,al_c,q_85,enc_auto/Samanid.webp',
+      'Saffarid Emirate': 'https://static.wixstatic.com/media/fbe150_5728d3144c9343fc9a0838eceb37fc07~mv2.jpg/v1/fill/w_736,h_414,al_c,q_80,enc_auto/saffaid.jpg',
+      'Buyid Confederation': 'https://static.wixstatic.com/media/fbe150_98f26b9a06e74dd8a09ea6dfdfc34c09~mv2.webp/v1/fill/w_2560,h_1440,al_c,q_90,enc_auto/buyid.webp',
+      'Ghaznavid Empire': 'https://static.wixstatic.com/media/fbe150_e69c26be77f441b692279df0d3a4e4dc~mv2.webp/v1/fill/w_1200,h_800,al_c,q_85,enc_auto/ghaznavid.webp',
+      'Great Seljuk Empire': 'https://static.wixstatic.com/media/fbe150_6093a2cc263447c2aa13ab6c6adec1dc~mv2.webp/v1/fill/w_1200,h_729,al_c,q_85,enc_auto/greatseljuk.webp',
+      'Khwarazmian Empire': 'https://static.wixstatic.com/media/fbe150_977b262160c241638871a574e442171e~mv2.png/v1/fill/w_2560,h_1683,al_c,q_95,enc_auto/khwarazmia.png',
+      'Mongol Conquest Intermezzo': 'https://static.wixstatic.com/media/fbe150_dec010573026455088fe0a25b78b510b~mv2.png/v1/fill/w_800,h_533,al_c,q_90,enc_auto/mongol.png',
+      'Ilkhanate': 'https://static.wixstatic.com/media/fbe150_1900b43464e14779a7310567878315c1~mv2.png/v1/fill/w_266,h_190,al_c,q_85,enc_auto/ilkhanate.png',
+      'Muzaffarids': 'https://static.wixstatic.com/media/fbe150_8156ccfd6b644377b5d61a056e6cb0b3~mv2.png/v1/fill/w_640,h_266,al_c,q_85,enc_auto/muzaffarid.png',
+      'Qara Qoyunlu': 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Flag_of_Kara_Koyunlu_dynasty.png',
+      'Timurid Empire': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Timurid_Empire_flag.svg/800px-Timurid_Empire_flag.svg.png?20230721132008',
+      'Aq Qoyunlu': 'https://static.wixstatic.com/media/fbe150_0160fde230d646799f53a3e4fb61f5d4~mv2.webp/v1/fill/w_800,h_533,al_c,q_85,enc_auto/aqqonqly.webp',
+      'Safavid Empire': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Safavid_Flag.svg/1280px-Safavid_Flag.svg.png',
+      'Afsharid Empire': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Nader_Shah_Flag.svg/800px-Nader_Shah_Flag.svg.png?20121118035022',
+      'Zand Dynasty': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Zand_Dynasty_flag.svg/1920px-Zand_Dynasty_flag.svg.png',
+      'Qajar Dynasty': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Mohammad_Shah_Qajar_Flag.svg/1280px-Mohammad_Shah_Qajar_Flag.svg.png',
+      'Pahlavi Dynasty': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/State_flag_of_Iran_%281964%E2%80%931980%29.svg/1920px-State_flag_of_Iran_%281964%E2%80%931980%29.svg.png',
+      'Sasanian Empire': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Derafsh_Kaviani_flag_of_the_late_Sassanid_Empire.svg/1024px-Derafsh_Kaviani_flag_of_the_late_Sassanid_Empire.svg.png',
+      'Islamic Republic of Iran': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Flag_of_Iran.svg/1024px-Flag_of_Iran.svg.png'
+    };
+
+    function buildCandidates(url){
+      const out=[url];
+      const sizes=[1024,800,640,512,400,320,256,200];
+      try {
+        const parts=url.split('/'); const last=parts[parts.length-1]; const idx=last.indexOf('px-');
+        if(idx>0){ const rest=last.slice(idx+3); const prefix=url.slice(0, url.lastIndexOf('/')); for(const s of sizes){ const alt = prefix + '/' + s + 'px-' + rest; if(!out.includes(alt)) out.push(alt); } }
+      } catch(_){ }
+      return out;
+    }
+    window.CUSTOM_FLAGS = window.CUSTOM_FLAGS || {};
+    function getFlagUrl(name){ return (window.CUSTOM_FLAGS && window.CUSTOM_FLAGS[name]) || IMAGE_FILLS[name] || null; }
+
+    // Use <image> (not foreignObject) to avoid cropping issues
+    function appendFlagImage(x,y,w,h,url,name,scope,start,end){
+      if(!url) return null; const urls=buildCandidates(url);
+      const g=document.createElementNS('http://www.w3.org/2000/svg','g'); g.setAttribute('class','flag'); if(name){ g.setAttribute('data-name',name);} if(scope){ g.setAttribute('data-scope',scope);} if(start!=null&&end!=null){ g.setAttribute('data-start',start); g.setAttribute('data-end',end);} 
+      const img=document.createElementNS('http://www.w3.org/2000/svg','image'); img.setAttribute('x',x); img.setAttribute('y',y); img.setAttribute('width',w); img.setAttribute('height',h); img.setAttribute('preserveAspectRatio','none'); img.setAttributeNS('http://www.w3.org/1999/xlink','href',urls[0]); img.setAttribute('href',urls[0]);
+      let i=0; img.addEventListener('error',()=>{ i++; if(i<urls.length){ img.setAttributeNS('http://www.w3.org/1999/xlink','href',urls[i]); img.setAttribute('href',urls[i]); }});
+      g.appendChild(img); svg.appendChild(g); return g;
+    }
+
+    // =====================
+    // Colors & meta groups
+    // =====================
+    const DYNASTY_COLORS = {
+      'Proto‑Elamite': '#8B1A1A', 'Old Elamite': '#A41E22', 'Middle Elamite': '#C62828', 'Neo‑Elamite': '#E53935',
+      'Median Empire': '#2E7D32', 'Assyro‑Babylonian Control': '#7B5E57', 'Achaemenid Empire': '#D4AF37',
+      'Macedonian/Argead Rule': '#7F1D1D', 'Seleucid Empire (in Iran)': '#1D4ED8',
+      'Parthian (Arsacid) Empire': '#2E8B57', 'Sasanian Empire': '#7E22CE',
+      'Rashidun Caliphate': '#1B5E20', 'Umayyad Caliphate': '#EDEDED', 'Abbasid Caliphate (direct control)': '#111111',
+      'Tahirid Emirate (Khorasan)': '#444444', 'Saffarid Emirate': '#E0A106', 'Samanid Empire': '#2D2D2D',
+      'Ziyarid Dynasty': '#0E7490', 'Buyid Confederation': '#0D9488', 'Ghaznavid Empire': '#155E75',
+      'Great Seljuk Empire': '#0EA5E9', 'Khwarazmian Empire': '#B91C1C', 'Mongol Conquest Intermezzo': '#6B7280',
+      'Ilkhanate': '#1E40AF', 'Jalayirids': '#991B1B', 'Chobanids': '#1F2937', 'Injuids': '#BE123C',
+      'Muzaffarids': '#EA580C', 'Sarbadars': '#92400E', 'Kartids': '#6B8E23',
+      'Timurid Empire': '#2563EB', 'Qara Qoyunlu': '#0A0A0A', 'Aq Qoyunlu': '#D1D5DB',
+      'Safavid Empire': '#166534', 'Hotak (Afghan) Occupation': '#7C2D12', 'Safavid Restoration': '#1A7F3B',
+      'Afsharid Empire': '#C2410C', 'Zand Dynasty': '#10B981', 'Qajar Dynasty': '#1E7F5C', 'Pahlavi Dynasty': '#1F4E79',
+      'Islamic Republic of Iran': '#0E9F6E'
+    };
+
+    entries.forEach((e,i)=>{ e.hex = DYNASTY_COLORS[e.name] || hslToHex((i*137.508)%360,62,56); e.duration = e.end - e.start; });
+
+    function hashUnit(str){ let h=2166136261>>>0; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); } return (h>>>0)/4294967296; }
+    const SIDE_ANCHORS = Object.fromEntries(entries.map(e=>[e.name, hashUnit(e.name)]));
+    SIDE_ANCHORS['Median Empire'] = 0.85;
+    SIDE_ANCHORS['Neo‑Elamite'] = 0.20;
+    SIDE_ANCHORS['Assyro‑Babylonian Control'] = 0.30;
+    function anchorOf(name){ return (name in SIDE_ANCHORS) ? SIDE_ANCHORS[name] : 0.5; }
+
+    const metaGroups = [
+      { name:'Intermezzo', start:1335, end:1393, members:['Jalayirids','Chobanids','Injuids','Muzaffarids','Sarbadars','Kartids'] },
+      { name:'Hellenistic Interlude', start:bce(330), end:bce(247), members:['Macedonian/Argead Rule','Seleucid Empire (in Iran)'] }
+    ];
+
+    // Macro-age spans
+    const GOLDEN_SPANS = [
+      { start: bce(550), end: bce(330), tag: 'Achaemenid' },
+      { start: 224, end: 651, tag: 'Sasanian' },
+      { start: 819, end: 1194, tag: 'Persianate Renaissance' },
+      { start: 1501, end: 1722, tag: 'Safavid' }
+    ];
+    const DARK_SPANS = [
+      { start: bce(646), end: bce(539), tag: 'Assyro-Babylonian' },
+      { start: bce(330), end: bce(247), tag: 'Hellenistic' },
+      { start: 651, end: 750, tag: 'Conquest' },
+      { start: 1220, end: 1256, tag: 'Mongol Conquest' },
+      { start: 1380, end: 1405, tag: 'Timurid Invasions' },
+      { start: 1722, end: 1729, tag: 'Hotak' },
+      { start: 1789, end: 1925, tag: 'Qajar' }
+    ];
+
+    // Foreign rule / occupation / influence groups (overlay)
+    const FOREIGN_GROUPS = [
+      { start: bce(646), end: bce(539), label:'Assyro‑Babylonian Rule', color:'#ef4444' },
+      { start: bce(330), end: bce(247), label:'Greek Rule', color:'#ef4444' },
+      { start: 651, end: 861, label:'Arab Caliphate Rule', color:'#ef4444' },
+      { start: 977, end: 1231, label:'Turkic Rule', color:'#ef4444' },
+      { start: 1220, end: 1335, label:'Mongol Rule', color:'#ef4444' },
+      { start: 1370, end: 1501, label:'Timurid & Turkmen Rule', color:'#ef4444' },
+      { start: 1722, end: 1729, label:'Afghan Hotak Occupation', color:'#ef4444' },
+      // Influence period (requested):
+      { start: 1907, end: 1941, label:'British & Russian Influence', color:'#f59e0b' }
+    ];
+
+    const META_FA = { 'Intermezzo':'میان‌دوره', 'Hellenistic Interlude':'میان‌دورهٔ هلنیستی' };
+    function translateForeign(en){
+      const map={
+        'Assyro‑Babylonian Rule':'حاکمیت آشوری‌ـبابلی',
+        'Greek Rule':'حاکمیت یونانی',
+        'Arab Caliphate Rule':'حاکمیت خلافت عرب',
+        'Turkic Rule':'حاکمیت تُرکی',
+        'Mongol Rule':'حاکمیت مغول',
+        'Timurid & Turkmen Rule':'حاکمیت تیموری و ترکمان',
+        'Afghan Hotak Occupation':'اشغال افغان (هوتکی)',
+        'British & Russian Influence':'نفوذ بریتانیا و روسیه'
+      }; return map[en]||en; }
+
+    // =====================
+    // State
+    // =====================
+    let overlapMode = 'split';
+    let flagsEnabled = true;
+    let labelPlacement = 'side';
+    let excludeElam = false;
+    let showGolden = false;
+    let showDark = false;
+    let showReligion = false;
+    let showForeign = false;
+    let panelCollapsed = false;
+    let colWidthFrac = 0.52; // user-controlled via slider (30%..90% of plot width)
+
+    let state = null; // { margin, plotH, colX, colW, yearToY, globalMin, globalMax, rtl }
+    let viewMin = null, viewMax = null;
+
+    // Hover focus with range
+    let hoverDetails = null; // { name, start, end }
+    function setHover(details){ hoverDetails = details; applyHover(); }
+    function clearHover(){ hoverDetails = null; applyHover(); }
+
+    function applyHover(){
+      if(hoverDetails){
+        svg.classList.add('dim-mode');
+        const els = svg.querySelectorAll('[data-name]');
+        els.forEach(el=>{
+          const nm = el.getAttribute('data-name');
+          const scope = el.getAttribute('data-scope') || 'full';
+          const s = parseFloat(el.getAttribute('data-start'));
+          const e = parseFloat(el.getAttribute('data-end'));
+          let match = (nm===hoverDetails.name);
+          if(match && overlapMode==='split'){
+            if(scope==='split'){
+              match = !(e<=hoverDetails.start || s>=hoverDetails.end);
+            } else {
+              match = true;
+            }
+          }
+          if(match){ el.classList.add('matched'); } else { el.classList.remove('matched'); }
+        });
+      } else {
+        svg.classList.remove('dim-mode');
+        svg.querySelectorAll('.matched').forEach(el=>el.classList.remove('matched'));
+      }
+    }
+
+    // =====================
+    // Rendering
+    // =====================
+    function render(){
+      const rtl = (lang==='fa');
+      // Active data & bounds
+      const data = excludeElam ? entries.filter(e=>e.group!=='Elam') : entries.slice();
+      const activeMin = Math.min(...data.map(d => Math.min(d.start, d.end)));
+      const activeMax = Math.max(...data.map(d => Math.max(d.start, d.end)));
+      if(viewMin==null || viewMax==null || viewMin<activeMin || viewMax>activeMax){ viewMin=activeMin; viewMax=activeMax; }
+
+      const W = svg.clientWidth || svg.getBoundingClientRect().width || 900;
+      const H = svg.clientHeight || svg.getBoundingClientRect().height || 900;
+      svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+      svg.innerHTML = '';
+
+      // defs for hatch pattern (rule) and influence hatch
+      const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
+      function mkHatch(id, color){
+        const pat=document.createElementNS('http://www.w3.org/2000/svg','pattern'); pat.setAttribute('id',id); pat.setAttribute('patternUnits','userSpaceOnUse'); pat.setAttribute('width','8'); pat.setAttribute('height','8'); pat.setAttribute('patternTransform','rotate(45)');
+        const line=document.createElementNS('http://www.w3.org/2000/svg','line'); line.setAttribute('x1','0'); line.setAttribute('y1','0'); line.setAttribute('x2','0'); line.setAttribute('y2','8'); line.setAttribute('stroke',color); line.setAttribute('stroke-width','2'); pat.appendChild(line);
+        defs.appendChild(pat);
+      }
+      mkHatch('hatch-red', '#ef4444');
+      mkHatch('hatch-orange', '#f59e0b');
+      svg.appendChild(defs);
+
+      const labelW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--labelWidth'))||560;
+      const panelWcss = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--panelW'))||340;
+
+      const margin = rtl
+        ? { top:24, right: Math.max(labelW, 60+panelWcss), bottom:28, left:144 }
+        : { top:24, right: Math.max(labelW, 60+panelWcss), bottom:28, left:144 };
+      const plotW = Math.max(240, W - margin.left - margin.right);
+      const plotH = Math.max(200, H - margin.top - margin.bottom);
+      const colW = Math.max(40, Math.min(700, plotW * colWidthFrac));
+
+      // Column X and axis/label columns
+      let colX, axisX, braceX, baseLabelX;
+      if(rtl){
+        axisX = W - margin.right;
+        colX  = axisX - 30 - colW;
+        braceX = colX - 10;
+        baseLabelX = braceX - 14;
+      } else {
+        colX  = margin.left;
+        axisX = colX - 30;
+        braceX = colX + colW + 10;
+        baseLabelX = braceX + 14;
+      }
+
+      const span = viewMax - viewMin;
+      const yearToY = y => margin.top + plotH - ((y - viewMin)/span) * plotH;
+      state = { margin, plotH, colX, colW, braceX, baseLabelX, yearToY, globalMin: activeMin, globalMax: activeMax, rtl };
+
+      const braceX2 = state.rtl ? (state.colX - 10) : (state.colX + state.colW + 10);
+      const baseLabelX2 = state.rtl ? (braceX2 - 14) : (braceX2 + 14);
+
+      // Axis
+      const axis = document.createElementNS('http://www.w3.org/2000/svg','line');
+      axis.setAttribute('x1', axisX); axis.setAttribute('x2', axisX);
+      axis.setAttribute('y1', margin.top); axis.setAttribute('y2', margin.top+plotH);
+      axis.setAttribute('class', 'axis-line'); svg.appendChild(axis);
+
+      // Ticks
+      const approxTicks = Math.round(plotH/60);
+      const rawStep = (span/approxTicks);
+      const magn = Math.pow(10, Math.floor(Math.log10(rawStep)));
+      let step = Math.ceil(rawStep/magn)*magn; if(step<50) step=50;
+      const startTick = Math.ceil(viewMin/step)*step;
+      for(let y=startTick; y<=viewMax; y+=step){
+        const gy = yearToY(y);
+        if (gy<margin.top-5 || gy>margin.top+plotH+5) continue;
+        const g = document.createElementNS('http://www.w3.org/2000/svg','g'); g.setAttribute('class','tick');
+        const l = document.createElementNS('http://www.w3.org/2000/svg','line');
+        l.setAttribute('x1', colX); l.setAttribute('x2', colX+colW);
+        l.setAttribute('y1', gy); l.setAttribute('y2', gy); l.setAttribute('opacity', 0.35);
+        const tnode = document.createElementNS('http://www.w3.org/2000/svg','text');
+        const tx = axisX - 8; tnode.setAttribute('x', tx); tnode.setAttribute('y', gy);
+        tnode.setAttribute('text-anchor', 'end');
+        if(rtl){ tnode.setAttribute('direction','rtl'); tnode.setAttribute('unicode-bidi','plaintext'); }
+        tnode.textContent = toLabelLocal(y);
+        g.appendChild(l); g.appendChild(tnode); svg.appendChild(g);
+      }
+
+      // Base layers (full-width rectangles)
+      data.forEach(d=>{
+        const a = Math.max(d.start, viewMin), b = Math.min(d.end, viewMax); if(a>=b) return;
+        const y0 = yearToY(b), y1 = yearToY(a), h = Math.max(0, y1 - y0);
+        const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+        rect.setAttribute('x', colX); rect.setAttribute('y', y0);
+        rect.setAttribute('width', colW); rect.setAttribute('height', h);
+        rect.setAttribute('fill', d.hex); rect.setAttribute('class', 'layer');
+        rect.setAttribute('data-name', d.name); rect.setAttribute('data-scope','full'); rect.setAttribute('data-start', a); rect.setAttribute('data-end', b);
+        svg.appendChild(rect);
+        const url = getFlagUrl(d.name);
+        if (flagsEnabled && url){ appendFlagImage(colX, y0, colW, h, url, d.name, 'full', a, b); }
+      });
+
+      // Overlap slices
+      const boundsSet = new Set([viewMin, viewMax]);
+      data.forEach(d=>{ const a=Math.max(d.start,viewMin); const b=Math.min(d.end,viewMax); if(a<b){ boundsSet.add(a); boundsSet.add(b); } });
+      const bounds = Array.from(boundsSet).sort((a,b)=>a-b);
+      for(let i=0;i<bounds.length-1;i++){
+        const a=bounds[i], b=bounds[i+1]; if(a===b) continue;
+        const active = data.filter(d=>d.start<=a && d.end>=b);
+        if(active.length>1){
+          const ry = yearToY(b); const rh = Math.max(0, yearToY(a)-ry);
+          if (overlapMode==='blend'){
+            const blended = blendColors(active.map(d=> d.hex));
+            const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+            r.setAttribute('x', colX); r.setAttribute('y', ry); r.setAttribute('width', colW); r.setAttribute('height', rh); r.setAttribute('fill', blended); r.setAttribute('class','overlap-blend'); svg.appendChild(r);
+          } else {
+            const n = active.length; const ordered = active.slice().sort((A,B)=>anchorOf(A.name)-anchorOf(B.name));
+            for(let k=0;k<n;k++){
+              const d = ordered[k]; const x = colX + (k*colW/n); const w = colW/n;
+              const strip = document.createElementNS('http://www.w3.org/2000/svg','rect');
+              strip.setAttribute('x', x); strip.setAttribute('y', ry); strip.setAttribute('width', w); strip.setAttribute('height', rh); strip.setAttribute('fill', d.hex); strip.setAttribute('class','layer'); strip.setAttribute('data-name', d.name); strip.setAttribute('data-scope','split'); strip.setAttribute('data-start', a); strip.setAttribute('data-end', b); svg.appendChild(strip);
+              const url = getFlagUrl(d.name);
+              if (flagsEnabled && url){ appendFlagImage(x, ry, w, rh, url, d.name, 'split', a, b); }
+            }
+          }
+        }
+      }
+
+      // === Overlays ===
+      const GOLD_COLOR = '#D4AF37';
+      const DARK_COLOR = '#000000';
+      const Z_COLOR = '#8b5cf6';
+      const SUNNI_COLOR = '#14b8a6';
+      const SHIA_COLOR = '#10b981';
+      const POLY_COLOR = '#f97316';
+
+      function segsInView(spans){
+        return spans.map(s=>({start:Math.max(s.start, viewMin), end:Math.min(s.end, viewMax), raw:s}))
+                    .filter(s=>s.start < s.end);
+      }
+
+      function drawOverlayRect(x,y,w,h, fill, opacity=0.7, cls=''){
+        const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+        r.setAttribute('x', x); r.setAttribute('y', y); r.setAttribute('width', w); r.setAttribute('height', h);
+        r.setAttribute('fill', fill); r.setAttribute('opacity', String(opacity)); if(cls) r.setAttribute('class', cls);
+        svg.appendChild(r);
+      }
+
+      function drawForeignHatch(y0, h, color){
+        const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+        r.setAttribute('x', colX); r.setAttribute('y', y0); r.setAttribute('width', colW); r.setAttribute('height', h);
+        r.setAttribute('fill', `url(#${color==='#f59e0b'?'hatch-orange':'hatch-red'})`); r.setAttribute('opacity','0.6'); r.setAttribute('class','foreign-hatch');
+        svg.appendChild(r);
+      }
+
+      // Annotation layers
+      const braceLayer = document.createElementNS('http://www.w3.org/2000/svg','g'); braceLayer.setAttribute('id','brace-layer'); svg.appendChild(braceLayer);
+      const connectorLayer = document.createElementNS('http://www.w3.org/2000/svg','g'); connectorLayer.setAttribute('id','connector-layer'); svg.appendChild(connectorLayer);
+      const labelTopLayer = document.createElementNS('http://www.w3.org/2000/svg','g'); labelTopLayer.setAttribute('id','label-top-layer'); svg.appendChild(labelTopLayer);
+
+      function drawBraceLabel(x0, yTop, yBot, stroke, textStr, labelX, alpha=1.0, connect=false, swatchSrc=null, labelOpts={}){
+        const yMid=(yTop+yBot)/2; const h=yTop-yBot; const bulge=12; const s1=Math.min(40,h*0.25); const s2=Math.min(28,h*0.18);
+        const dir = state.rtl ? -1 : +1;
+        const dPath=[
+          `M ${x0} ${yTop}`,
+          `C ${x0} ${yTop+s1}, ${x0+dir*bulge*0.6} ${yMid-s2}, ${x0+dir*bulge} ${yMid}`,
+          `C ${x0+dir*bulge*0.6} ${yMid+s2}, ${x0} ${yBot-s1}, ${x0} ${yBot}`
+        ].join(' ');
+        const g=document.createElementNS('http://www.w3.org/2000/svg','g'); g.setAttribute('opacity',alpha.toFixed(3)); if(labelOpts.name){ g.setAttribute('data-name', labelOpts.name); g.setAttribute('data-start', labelOpts.rangeStart); g.setAttribute('data-end', labelOpts.rangeEnd); g.setAttribute('data-scope','label'); }
+        const path=document.createElementNS('http://www.w3.org/2000/svg','path'); path.setAttribute('d',dPath); path.setAttribute('class','brace'); path.setAttribute('stroke',stroke); g.appendChild(path);
+        const cap=8; const top=document.createElementNS('http://www.w3.org/2000/svg','line'); top.setAttribute('x1',x0-cap); top.setAttribute('x2',x0+cap); top.setAttribute('y1',yTop); top.setAttribute('y2',yTop); top.setAttribute('class','tickcap'); top.setAttribute('stroke',stroke); g.appendChild(top);
+        const bot=document.createElementNS('http://www.w3.org/2000/svg','line'); bot.setAttribute('x1',x0-cap); bot.setAttribute('x2',x0+cap); bot.setAttribute('y1',yBot); bot.setAttribute('y2',yBot); bot.setAttribute('class','tickcap'); bot.setAttribute('stroke',stroke); g.appendChild(bot);
+        const nub=document.createElementNS('http://www.w3.org/2000/svg','line');
+        nub.setAttribute('x1',x0+dir*bulge); nub.setAttribute('x2',labelX); nub.setAttribute('y1',yMid); nub.setAttribute('y2',yMid); nub.setAttribute('class','tickcap'); nub.setAttribute('stroke',stroke);
+        if(labelOpts.name){ nub.setAttribute('data-name', labelOpts.name); nub.setAttribute('data-start', labelOpts.rangeStart); nub.setAttribute('data-end', labelOpts.rangeEnd); nub.setAttribute('data-scope','label'); }
+        if(connect){ connectorLayer.appendChild(nub); } else { g.appendChild(nub); }
+        // swatch + text
+        const text=document.createElementNS('http://www.w3.org/2000/svg','text');
+        let textTargetLayer = connect ? labelTopLayer : g;
+        const textStrLocalized = (lang==='fa') ? toFaDigits(textStr) : textStr;
+        if(state.rtl){
+          const swx = labelX - 10;
+          if(swatchSrc){ const sw=document.createElementNS('http://www.w3.org/2000/svg','image'); sw.setAttribute('x',swx); sw.setAttribute('y',yMid-6); sw.setAttribute('width',10); sw.setAttribute('height',12); sw.setAttribute('preserveAspectRatio','xMidYMid slice'); sw.setAttributeNS('http://www.w3.org/1999/xlink','href',swatchSrc); sw.setAttribute('href',swatchSrc); if(labelOpts.name){ sw.setAttribute('data-name', labelOpts.name); sw.setAttribute('data-scope','label'); } g.appendChild(sw);} else { const swr=document.createElementNS('http://www.w3.org/2000/svg','rect'); swr.setAttribute('x',swx); swr.setAttribute('y',yMid-6); swr.setAttribute('width',10); swr.setAttribute('height',12); swr.setAttribute('fill',stroke); swr.setAttribute('class','swatch'); if(labelOpts.name){ swr.setAttribute('data-name', labelOpts.name); swr.setAttribute('data-scope','label'); } g.appendChild(swr);} 
+          text.setAttribute('x', swx - 4);
+          text.setAttribute('text-anchor','start');
+          text.setAttribute('direction','rtl'); text.setAttribute('unicode-bidi','plaintext');
+        } else {
+          if(swatchSrc){ const sw=document.createElementNS('http://www.w3.org/2000/svg','image'); sw.setAttribute('x',labelX); sw.setAttribute('y',yMid-6); sw.setAttribute('width',10); sw.setAttribute('height',12); sw.setAttribute('preserveAspectRatio','xMidYMid slice'); sw.setAttributeNS('http://www.w3.org/1999/xlink','href',swatchSrc); sw.setAttribute('href',swatchSrc); if(labelOpts.name){ sw.setAttribute('data-name', labelOpts.name); sw.setAttribute('data-scope','label'); } g.appendChild(sw);} else { const swr=document.createElementNS('http://www.w3.org/2000/svg','rect'); swr.setAttribute('x',labelX); swr.setAttribute('y',yMid-6); swr.setAttribute('width',10); swr.setAttribute('height',12); swr.setAttribute('fill',stroke); swr.setAttribute('class','swatch'); if(labelOpts.name){ swr.setAttribute('data-name', labelOpts.name); swr.setAttribute('data-scope','label'); } g.appendChild(swr);} 
+          text.setAttribute('x', labelX+16); text.setAttribute('text-anchor','start');
+        }
+        text.setAttribute('y', yMid); text.setAttribute('class','label'); if(labelOpts.labelFill){ text.setAttribute('fill', labelOpts.labelFill); } if(labelOpts.fontScale){ text.style.fontSize = (labelOpts.fontScale*1.0)+'em'; }
+        text.textContent=textStrLocalized; if(labelOpts.name){ text.setAttribute('data-name', labelOpts.name); text.setAttribute('data-start', labelOpts.rangeStart); text.setAttribute('data-end', labelOpts.rangeEnd); text.setAttribute('data-scope','label'); }
+        // Hover focus from label only
+        if(labelOpts.name){
+          text.addEventListener('mouseenter', ()=>{ setHover({ name: labelOpts.name, start: labelOpts.rangeStart, end: labelOpts.rangeEnd }); });
+          text.addEventListener('mouseleave', ()=>{ clearHover(); });
+        }
+        textTargetLayer.appendChild(text); braceLayer.appendChild(g);
+      }
+
+      function drawInsideLabel(d, yTop, yBot, stroke, textStr, alpha=1.0){
+        const yMid=(yTop+yBot)/2;
+        let cx = state.colX + state.colW/2;
+        if(overlapMode==='split'){
+          const span = (viewMax - viewMin);
+          const yRel = (yMid - state.margin.top) / state.plotH;
+          const yearAt = viewMin + (1 - yRel) * span;
+          const active = (excludeElam ? entries.filter(e=>e.group!=='Elam') : entries).filter(e=>e.start<=yearAt && e.end>=yearAt);
+          if(active.length>1){ active.sort((A,B)=>anchorOf(A.name)-anchorOf(B.name)); const idx = active.findIndex(e=>e.name===d.name); if(idx>=0){ cx = state.colX + (idx+0.5)*(state.colW/active.length); } }
+        }
+        const g=document.createElementNS('http://www.w3.org/2000/svg','g'); g.setAttribute('opacity',alpha.toFixed(3));
+        const text=document.createElementNS('http://www.w3.org/2000/svg','text'); text.setAttribute('x', cx); text.setAttribute('y', yMid); text.setAttribute('class','label'); text.setAttribute('text-anchor','middle'); text.setAttribute('data-name', d.name); text.setAttribute('data-start', d.start); text.setAttribute('data-end', d.end); text.setAttribute('data-scope','label'); if(state.rtl){ text.setAttribute('direction','rtl'); text.setAttribute('unicode-bidi','plaintext'); }
+        text.textContent=(lang==='fa'?toFaDigits(textStr):textStr); 
+        text.addEventListener('mouseenter', ()=>{ setHover({ name: d.name, start: d.start, end: d.end }); });
+        text.addEventListener('mouseleave', ()=>{ clearHover(); });
+        g.appendChild(text);
+        labelTopLayer.appendChild(g);
+      }
+
+      // Zoom fraction & opacity scaling
+      const zoomFrac = (viewMax-viewMin)/(state.globalMax-state.globalMin);
+      const alphaForSmall = (z)=> 0.12 + (1 - z) * 0.88;
+      const alphaForMetaMembers = (z)=> 0.08 + (1 - z) * 0.92;
+      const alphaForModes = (z)=> 0.12 + (1 - z) * 0.88;
+
+      // Build label items
+      const items = [];
+      const activeSpan = (state.globalMax - state.globalMin);
+      data.forEach(d=>{
+        const yTop = yearToY(Math.min(d.start, viewMax));
+        const yBot = yearToY(Math.max(d.end, viewMin));
+        if (yBot >= yTop) return;
+        const pct = ((d.end-d.start)/activeSpan*100);
+        const isIRI = d.name==='Islamic Republic of Iran';
+        const small = (pct < 1.0) && !isIRI;
+        const meta = metaGroups.find(m=>m.members.includes(d.name));
+        const metaActive = !!meta && zoomFrac>0.95;
+        let alpha = 1.0; if(metaActive) alpha = alphaForMetaMembers(zoomFrac); else if(small) alpha = alphaForSmall(zoomFrac);
+        if(showGolden||showDark||showReligion||showForeign) alpha *= alphaForModes(zoomFrac);
+        const nm = dynastyName(d);
+        const labelText = `${nm} — ${toLabelLocal(d.start)} ${t('to')} ${toLabelLocal(d.end)} — ${fmtPct(pct)}`;
+        items.push({ d,yTop,yBot,stroke: d.hex, swatchSrc: getFlagUrl(d.name) || null, labelText, alpha });
+      });
+
+      // Sequencing at full zoom-out
+      const fullyOut = zoomFrac > 0.95; const sequencedSet = new Set();
+      if(labelPlacement==='side' && fullyOut){
+        const threshold = 8; // px
+        const cands = items.filter(it=>it.alpha>=0.999);
+        cands.sort((a,b)=> ((a.yTop+a.yBot)/2 - (b.yTop+b.yBot)/2) || (a.d.start - b.d.start));
+        const groups=[]; let cur=[]; let curTop=-Infinity, curBot=+Infinity;
+        const startNew=(it)=>{ cur=[it]; curTop=it.yTop; curBot=it.yBot; };
+        cands.forEach((it,idx)=>{
+          if(idx===0){ startNew(it); return; }
+          const overlap = Math.min(curTop,it.yTop) - Math.max(curBot,it.yBot);
+          if(overlap>threshold){ cur.push(it); curTop=Math.min(curTop,it.yTop); curBot=Math.max(curBot,it.yBot); }
+          else { groups.push(cur); startNew(it); }
+        });
+        if(cur.length) groups.push(cur);
+        groups.forEach(group=>{
+          if(group.length<=1) return;
+          group.sort((a,b)=>a.d.start-b.d.start);
+          let cursorX = baseLabelX2;
+          group.forEach(it=>{
+            drawBraceLabel(braceX2,it.yTop,it.yBot,it.stroke,it.labelText,cursorX,it.alpha,true,it.swatchSrc,{name: it.d.name, rangeStart: it.d.start, rangeEnd: it.d.end});
+            const textW = measureLabelWidth(lang==='fa'?toFaDigits(it.labelText):it.labelText); const blockW = 16 + textW; const pad = 24; cursorX += state.rtl ? -(blockW + pad) : (blockW + pad); sequencedSet.add(it);
+          });
+        });
+      }
+
+      // Remaining labels
+      if(labelPlacement==='side'){
+        items.forEach(it=>{
+          if(sequencedSet.has(it)) return;
+          const labelX = baseLabelX2;
+          drawBraceLabel(braceX2,it.yTop,it.yBot,it.stroke,it.labelText,labelX,it.alpha,false,it.swatchSrc,{name: it.d.name, rangeStart: it.d.start, rangeEnd: it.d.end});
+        });
+      } else {
+        items.forEach(it=>{ drawInsideLabel(it.d, it.yTop, it.yBot, it.stroke, it.labelText, it.alpha); });
+      }
+
+      // === Overlay labels === keep text fixed using RAW span years + percent of active
+      function labelTextRange(prefixFa, prefixEn, s){
+        const pct = ( (s.raw.end - s.raw.start) / activeSpan * 100 );
+        const base = (lang==='fa'?prefixFa:prefixEn);
+        const txt = `${base} — ${toLabelLocal(s.raw.start)} ${t('to')} ${toLabelLocal(s.raw.end)} — ${fmtPct(pct)}`;
+        return txt;
+      }
+
+      if(showGolden){
+        for(const s of segsInView(GOLDEN_SPANS)){
+          const y0 = yearToY(s.end), y1 = yearToY(s.start), h = y1 - y0;
+          drawOverlayRect(colX,y0,colW,h,GOLD_COLOR,0.7);
+          const lab = labelTextRange('دوران طلایی','Golden Age',s);
+          drawBraceLabel(braceX2,yearToY(s.start),yearToY(s.end),'#D4AF37',lab,baseLabelX2,1.0,false,null,{labelFill:'#D4AF37',fontScale:1.15});
+        }
+      }
+      if(showDark){
+        for(const s of segsInView(DARK_SPANS)){
+          const y0 = yearToY(s.end), y1 = yearToY(s.start), h = y1 - y0;
+          drawOverlayRect(colX,y0,colW,h,DARK_COLOR,0.7);
+          const lab = labelTextRange('دوران سیاه','Dark Age',s);
+          drawBraceLabel(braceX2,yearToY(s.start),yearToY(s.end),'#9aa0a6',lab,baseLabelX2,1.0,false,null,{labelFill:'#9aa0a6',fontScale:1.15});
+        }
+      }
+
+      if(showReligion){
+        // dynamic religion spans based on active range: Polytheism -> Zoroastrianism (start ~ Medes) -> Sunni -> Shia
+        const relSpans = [
+          { start: activeMin, end: bce(678), label: 'Polytheism', color: POLY_COLOR, labelFa:'چندخدایی' },
+          { start: bce(678), end: 651, label: 'Zoroastrianism', color: Z_COLOR, labelFa:'زرتشتی' },
+          { start: 651, end: 1501, label: 'Sunni Islam', color: SUNNI_COLOR, labelFa:'اسلام سنی' },
+          { start: 1501, end: 2025, label: 'Twelver Shia Islam', color: SHIA_COLOR, labelFa:'اسلام شیعه دوازده‌امامی' }
+        ];
+        for(const s of segsInView(relSpans)){
+          const y0=yearToY(s.end), y1=yearToY(s.start), h=y1-y0;
+          drawOverlayRect(colX,y0,colW,h,s.raw.color,0.22);
+          const label = (lang==='fa' ? s.raw.labelFa : s.raw.label) + ' — ' + toLabelLocal(s.raw.start) + ' ' + t('to') + ' ' + toLabelLocal(s.raw.end) + ' — ' + fmtPct((s.raw.end-s.raw.start)/activeSpan*100);
+          drawBraceLabel(braceX2,yearToY(s.start),yearToY(s.end),s.raw.color,label,baseLabelX2,1.0,false,null,{labelFill:s.raw.color,fontScale:1.12});
+        }
+      }
+
+      if(showForeign){
+        for(const s of segsInView(FOREIGN_GROUPS)){
+          const y0=yearToY(s.end), y1=yearToY(s.start), h=y1-y0;
+          drawForeignHatch(y0,h, s.raw.color);
+          const baseText = (lang==='fa'? translateForeign(s.raw.label): s.raw.label);
+          const label = baseText + ' — ' + toLabelLocal(s.raw.start) + ' ' + t('to') + ' ' + toLabelLocal(s.raw.end) + ' — ' + fmtPct((s.raw.end-s.raw.start)/activeSpan*100);
+          drawBraceLabel(braceX2,yearToY(s.start),yearToY(s.end),s.raw.color,label,baseLabelX2,1.0,false,null,{labelFill:s.raw.color,fontScale:1.15});
+        }
+      }
+
+      // Footer note
+      const note=document.createElementNS('http://www.w3.org/2000/svg','text');
+      const footX = state.rtl ? (svg.viewBox.baseVal.width - state.margin.right) : state.margin.left;
+      note.setAttribute('x',footX); note.setAttribute('y',svg.viewBox.baseVal.height-8); note.setAttribute('class','note'); note.textContent=t('footer'); svg.appendChild(note);
+
+      // === Facts ===
+      const totalSpan = activeMax - activeMin;
+      function unionLength(intervals, lo, hi){
+        const clips = intervals.map(s=>({start:Math.max(s.start,lo), end:Math.min(s.end,hi)})).filter(s=>s.start<s.end).sort((a,b)=>a.start-b.start);
+        let total=0; let cur=null; for(const s of clips){ if(!cur){ cur={...s}; } else if(s.start<=cur.end){ cur.end=Math.max(cur.end,s.end); } else { total += cur.end-cur.start; cur={...s}; } } if(cur) total += cur.end-cur.start; return total;
+      }
+      const foreignIntervalsRaw = entries.filter(d=>d.foreign).map(d=>({start:d.start,end:d.end}));
+      const goldIntervals = GOLDEN_SPANS.map(s=>({start:s.start,end:s.end}));
+      const darkIntervals = DARK_SPANS.map(s=>({start:s.start,end:s.end}));
+      const pctGold = fmtPct(unionLength(goldIntervals, activeMin, activeMax)/totalSpan*100);
+      const pctDark = fmtPct(unionLength(darkIntervals, activeMin, activeMax)/totalSpan*100);
+      const pctForeign = fmtPct(unionLength(foreignIntervalsRaw, activeMin, activeMax)/totalSpan*100);
+      const influenceIntervals = [{start:1907,end:Math.min(1941,activeMax)}];
+      const pctInfluence = fmtPct(unionLength(influenceIntervals, activeMin, activeMax)/totalSpan*100);
+      const zInt = [{start:bce(678), end:651}], sunInt=[{start:651,end:1501}], shInt=[{start:1501,end:activeMax}], polyInt=[{start:activeMin,end:bce(678)}];
+      const pctZ = fmtPct(unionLength(zInt, activeMin, activeMax)/totalSpan*100);
+      const pctSu = fmtPct(unionLength(sunInt, activeMin, activeMax)/totalSpan*100);
+      const pctSh = fmtPct(unionLength(shInt, activeMin, activeMax)/totalSpan*100);
+      const pctPoly = fmtPct(unionLength(polyInt, activeMin, activeMax)/totalSpan*100);
+
+      let factsOut = t('factsTitle')+': ';
+      const pieces=[];
+      if(showGolden) pieces.push(`${t('factsGold')} ${pctGold}`);
+      if(showDark) pieces.push(`${t('factsDark')} ${pctDark}`);
+      if(showReligion) pieces.push(`${t('factsPoly')} ${pctPoly} · ${t('factsZ')} ${pctZ} · ${t('factsSunni')} ${pctSu} · ${t('factsShia')} ${pctSh}`);
+      if(showForeign) pieces.push(`${t('factsForeign')} ${pctForeign} · ${(lang==='fa'?'نفوذ':'Influence')} ${pctInfluence}`);
+      if(pieces.length===0) pieces.push(`${t('factsGold')} ${pctGold} · ${t('factsDark')} ${pctDark} · ${t('factsForeign')} ${pctForeign}`);
+      elFacts.textContent = (lang==='fa'?toFaDigits(factsOut + pieces.join('  ·  ')):(factsOut + pieces.join('  ·  ')));
+
+      // === Dynamic subtitle percent note ===
+      elSub.textContent = t('subtitle') + ' — ' + (excludeElam ? t('pctNoteExc') : t('pctNoteInc'));
+
+      applyHover();
+    }
+
+    // =====================
+    // Controls wiring
+    // =====================
+    function refreshUIStrings(){
+      elTitle.textContent = t('title');
+      elPanelTitle.textContent = t('optionsTitle');
+      btnOverlap.textContent = `${t('overlap')}: ${overlapMode==='split' ? t('split') : t('blend')}`;
+      btnFlags.textContent = (lang==='fa') ? `${t('flags')}: ${flagsEnabled ? 'روشن' : 'خاموش'}` : `${t('flags')}: ${flagsEnabled ? 'ON' : 'OFF'}`;
+      btnLabelPos.textContent = `${t('labels')}: ${labelPlacement==='inside' ? t('inside') : t('side')}`;
+      btnExcludeElam.textContent = (lang==='fa') ? `${t('excludeElam')}: ${excludeElam ? 'روشن' : 'خاموش'}` : `${t('excludeElam')}: ${excludeElam ? 'ON' : 'OFF'}`;
+      btnLang.textContent = (lang==='fa') ? `${t('languageShort')}: ${t('langFA')}` : `${t('languageShort')}: ${t('langEN')}`;
+      btnGolden.textContent = (lang==='fa') ? `${t('goldenAge')}: ${showGolden ? 'روشن' : 'خاموش'}` : `${t('goldenAge')}: ${showGolden ? 'ON' : 'OFF'}`;
+      btnDark.textContent = (lang==='fa') ? `${t('darkAge')}: ${showDark ? 'روشن' : 'خاموش'}` : `${t('darkAge')}: ${showDark ? 'ON' : 'OFF'}`;
+      btnReligion.textContent = (lang==='fa') ? `${t('religion')}: ${showReligion ? 'روشن' : 'خاموش'}` : `${t('religion')}: ${showReligion ? 'ON' : 'OFF'}`;
+      btnForeignRule.textContent = (lang==='fa') ? `${t('foreignRule')}: ${showForeign ? 'روشن' : 'خاموش'}` : `${t('foreignRule')}: ${showForeign ? 'ON' : 'OFF'}`;
+      document.getElementById('width-label').textContent = t('widthLabel');
+      const wDisp = Math.round(colWidthFrac*100);
+      elWidthValue.textContent = (lang==='fa'? toFaDigits(wDisp) : wDisp) + '%';
+      // Panel lip chevron
+      elPanelTab.querySelector('span').textContent = panelCollapsed ? (document.documentElement.dir==='rtl' ? '▶' : '▶') : (document.documentElement.dir==='rtl' ? '◀' : '◀');
+      document.title = t('title');
+    }
+
+    btnOverlap.addEventListener('click', ()=>{ overlapMode = (overlapMode==='split') ? 'blend' : 'split'; const on = (overlapMode==='split'); btnOverlap.classList.toggle('on', on); btnOverlap.setAttribute('aria-pressed', String(on)); refreshUIStrings(); render(); });
+    btnFlags.addEventListener('click', ()=>{ flagsEnabled = !flagsEnabled; btnFlags.classList.toggle('on', flagsEnabled); btnFlags.setAttribute('aria-pressed', String(flagsEnabled)); refreshUIStrings(); render(); });
+    btnLabelPos.addEventListener('click', ()=>{ labelPlacement = (labelPlacement==='side') ? 'inside' : 'side'; const on = (labelPlacement==='inside'); btnLabelPos.classList.toggle('on', on); btnLabelPos.setAttribute('aria-pressed', String(on)); refreshUIStrings(); render(); });
+    btnExcludeElam.addEventListener('click', ()=>{ excludeElam = !excludeElam; btnExcludeElam.classList.toggle('on', excludeElam); btnExcludeElam.setAttribute('aria-pressed', String(excludeElam)); viewMin = null; viewMax = null; refreshUIStrings(); render(); });
+    btnLang.addEventListener('click', ()=>{
+      lang = (lang==='en') ? 'fa' : 'en';
+      document.documentElement.lang = (lang==='fa') ? 'fa' : 'en';
+      document.documentElement.dir = (lang==='fa') ? 'rtl' : 'ltr';
+      refreshUIStrings(); render();
+    });
+    btnGolden.addEventListener('click', ()=>{ showGolden = !showGolden; btnGolden.classList.toggle('on', showGolden); btnGolden.setAttribute('aria-pressed', String(showGolden)); refreshUIStrings(); render(); });
+    btnDark.addEventListener('click', ()=>{ showDark = !showDark; btnDark.classList.toggle('on', showDark); btnDark.setAttribute('aria-pressed', String(showDark)); refreshUIStrings(); render(); });
+    btnReligion.addEventListener('click', ()=>{ showReligion = !showReligion; btnReligion.classList.toggle('on', showReligion); btnReligion.setAttribute('aria-pressed', String(showReligion)); refreshUIStrings(); render(); });
+    btnForeignRule.addEventListener('click', ()=>{ showForeign = !showForeign; btnForeignRule.classList.toggle('on', showForeign); btnForeignRule.setAttribute('aria-pressed', String(showForeign)); refreshUIStrings(); render(); });
+
+    // Panel lip toggle
+    elPanelTab.addEventListener('click', ()=>{
+      panelCollapsed = !panelCollapsed;
+      elPanel.classList.toggle('collapsed', panelCollapsed);
+      refreshUIStrings();
+    });
+
+    // Width slider
+    elWidthSlider.addEventListener('input', (e)=>{
+      const pct = Number(e.target.value);
+      colWidthFrac = pct / 100;
+      refreshUIStrings();
+      render();
+    });
+
+    // =====================
+    // Interaction: zoom & pan (inverted)
+    // =====================
+    function clamp(v,a,b){ return Math.min(b, Math.max(a,v)); }
+    function zoomAt(pivotY, delta){
+      const data = excludeElam ? entries.filter(e=>e.group!=='Elam') : entries.slice();
+      const min = Math.min(...data.map(d => Math.min(d.start, d.end)));
+      const max = Math.max(...data.map(d => Math.max(d.start, d.end)));
+      const span = viewMax - viewMin;
+      const pivotRatio = (pivotY - state.margin.top) / state.plotH;
+      const pivotYear = viewMax - pivotRatio*span;
+      const zoom = Math.exp(delta*0.0012);
+      let newSpan = clamp(span*zoom, (max-min)*0.02, (max-min));
+      let newMin = pivotYear - (1-pivotRatio)*newSpan;
+      let newMax = pivotYear + pivotRatio*newSpan;
+      newMin = clamp(newMin, min, max-0.001);
+      newMax = clamp(newMax, newMin+0.001, max);
+      viewMin = newMin; viewMax = newMax;
+    }
+
+    let dragStart=null;
+    svg.addEventListener('wheel', (e)=>{ e.preventDefault(); const rect=svg.getBoundingClientRect(); const y=e.clientY-rect.top; zoomAt(y, e.deltaY); render(); }, {passive:false});
+    svg.addEventListener('mousedown', (e)=>{ dragStart={y:e.clientY, vmin:viewMin, vmax:viewMax}; svg.classList.add('dragging'); });
+    window.addEventListener('mouseup', ()=>{ dragStart=null; svg.classList.remove('dragging'); });
+    window.addEventListener('mousemove', (e)=>{
+      if(!dragStart) return; const dy=e.clientY-dragStart.y; const yearsPerPx=(viewMax-viewMin)/state.plotH; viewMin=dragStart.vmin + dy*yearsPerPx; viewMax=dragStart.vmax + dy*yearsPerPx; render();
+    });
+    svg.addEventListener('dblclick', ()=>{ viewMin=null; viewMax=null; render(); });
+
+    // =====================
+    // Tests
+    // =====================
+    function runTests(){
+      console.assert(bce(1)===0, 'bce(1) should be 0');
+      console.assert(toLabelEN(0)==='1 BCE', 'toLabelEN(0)');
+      console.assert(typeof measureLabelWidth('Median Empire — 678 to 550')==='number', 'measureLabelWidth returns number');
+      // width slider bounds
+      const prev = colWidthFrac; colWidthFrac = 0.05; render(); colWidthFrac = 0.3; render(); colWidthFrac = 0.9; render(); colWidthFrac = prev;
+      // foreign text not undefined
+      const fg = {start:bce(330), end:bce(247), label:'Greek Rule', color:'#ef4444'}; const s={start:fg.start,end:fg.end,raw:fg};
+      const lbl = `${fg.label} — ${toLabelEN(fg.start)} to ${toLabelEN(fg.end)} — ${( (fg.end-fg.start)/ (2025 - bce(3200)) * 100).toFixed(1)}%`;
+      console.assert(lbl.includes('Greek Rule'), 'foreign label string defined');
+      // FA numerals
+      const faNum = toFaDigits('1234567890'); console.assert(faNum==='۱۲۳۴۵۶۷۸۹۰','FA digits mapping');
+    }
+
+    function refresh(){ refreshUIStrings(); render(); }
+    refresh();
+    runTests();
+  </script>
+</body>
+</html>
