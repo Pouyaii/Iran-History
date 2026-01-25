@@ -71,7 +71,7 @@
   <div id="wrap">
     <header>
       <h1>History of Iran Layered</h1>
-      <div class="sub">Bottom = earliest (Proto‑Elamite, 3200 BCE). Top = most recent (Islamic Republic, 2026). Scroll to zoom, drag to pan. Double‑click to reset.</div>
+      <div class="sub">Bottom = earliest (Proto‑Elamite, 3200 BCE). Top = most recent (Islamic Republic of Iran, 2026). Scroll to zoom, drag to pan. Double‑click to reset.</div>
     </header>
     <div id="stage">
       <svg id="viz" role="img" aria-label="Vertical sediment timeline of Iranian ruling entities, zoomable and pannable"></svg>
@@ -173,7 +173,7 @@
     const I18N = {
       en: {
         title: 'History of Iran Layered',
-        subtitle: 'Bottom = earliest (Proto‑Elamite, 3200 BCE). Top = most recent (Islamic Republic, 2026). Scroll to zoom, drag to pan. Double‑click to reset.',
+        subtitle: 'Bottom = earliest (Proto‑Elamite, 3200 BCE). Top = most recent (Islamic Republic of Iran, 2026). Scroll to zoom, drag to pan. Double‑click to reset.',
         optionsTitle: 'Options',
         overlap: 'Overlap', split: 'SPLIT', blend: 'BLEND',
         flags: 'Flags',
@@ -192,7 +192,7 @@
       },
       fa: {
         title: 'تاریخ لایه‌ای ایران',
-        subtitle: 'پایین = قدیمی‌ترین (پیش‌ـایلامی، ۳۲۰۰ پ.م). بالا = جدیدترین (جمهوری اسلامی، ۲۰۲۵). با اسکرول بزرگ‌نمایی، با کشیدن جابه‌جا، دوبارکلیک بازنشانی.',
+        subtitle: 'پایین = قدیمی‌ترین (پیش‌ـایلامی، ۳۲۰۰ پ.م). بالا = جدیدترین (جمهوری اسلامی، ۲۰۲۶). با اسکرول بزرگ‌نمایی، با کشیدن جابه‌جا، دوبارکلیک بازنشانی.',
         optionsTitle: 'گزینه‌ها',
         overlap: 'هم‌پوشانی', split: 'تقسیم', blend: 'ترکیب',
         flags: 'پرچم‌ها',
@@ -276,38 +276,95 @@
       { name: 'Zand Dynasty', start: 1751, end: 1794, foreign: false },
       { name: 'Qajar Dynasty', start: 1789, end: 1925, foreign: false },
       { name: 'Pahlavi Dynasty', start: 1925, end: 1979, foreign: false },
-      { name: 'Islamic Republic', start: 1979, end: 2026, foreign: false }
+      { name: 'Islamic Republic of Iran', start: 1979, end: 2026, foreign: false }
     ];
 
-    const IMAGE_FILLS = {
-      'Median Empire': 'https://preview.redd.it/medes-empire-flag-corrected-v0-2huvula06e8b1.jpg?width=1080&crop=smart&auto=webp&s=05d50718f24ba7860ecd287706e8ae385372ffe6',
-      'Achaemenid Empire': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Standard_of_Cyrus_the_Great.svg/1024px-Standard_of_Cyrus_the_Great.svg.png',
-      'Macedonian/Argead Rule': 'https://static.wixstatic.com/media/fbe150_f4bd28b995e8493d9992919676a8c16d~mv2.webp/v1/fill/w_3300,h_2200,al_c,q_90,enc_auto/macedonian.webp',
-      'Seleucid Empire (in Iran)': 'https://static.wixstatic.com/media/fbe150_8bc877788a8f48589fa2c9c0d5e226d7~mv2.webp/v1/fill/w_960,h_640,al_c,q_85,enc_auto/seleuidempire.webp',
-      'Parthian (Arsacid) Empire': 'https://static.wixstatic.com/media/fbe150_5c1a05e588184909b52d79dc7dea7ae0~mv2.webp/v1/fill/w_2560,h_1711,al_c,q_90,enc_auto/parthian.webp',
-      'Rashidun Caliphate': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Rashidun_Caliphate_Flag.png/1024px-Rashidun_Caliphate_Flag.png',
-      'Abbasid Caliphate (direct control)': 'https://static.wixstatic.com/media/fbe150_8ed1bfbb73e04e08a407393c26e58c27~mv2.jpg/v1/fill/w_736,h_414,al_c,q_80,enc_auto/abbasid%20calliphae.jpg',
-      'Tahirid Emirate (Khorasan)': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Flag_of_the_Tahirids.svg/1280px-Flag_of_the_Tahirids.svg.png?20240114193849',
-      'Samanid Empire': 'https://static.wixstatic.com/media/fbe150_213c52d382e047d394587f936b9d7908~mv2.webp/v1/fill/w_1000,h_666,al_c,q_85,enc_auto/Samanid.webp',
-      'Saffarid Emirate': 'https://static.wixstatic.com/media/fbe150_5728d3144c9343fc9a0838eceb37fc07~mv2.jpg/v1/fill/w_736,h_414,al_c,q_80,enc_auto/saffaid.jpg',
-      'Buyid Confederation': 'https://static.wixstatic.com/media/fbe150_98f26b9a06e74dd8a09ea6dfdfc34c09~mv2.webp/v1/fill/w_2560,h_1440,al_c,q_90,enc_auto/buyid.webp',
-      'Ghaznavid Empire': 'https://static.wixstatic.com/media/fbe150_e69c26be77f441b692279df0d3a4e4dc~mv2.webp/v1/fill/w_1200,h_800,al_c,q_85,enc_auto/ghaznavid.webp',
-      'Great Seljuk Empire': 'https://static.wixstatic.com/media/fbe150_6093a2cc263447c2aa13ab6c6adec1dc~mv2.webp/v1/fill/w_1200,h_729,al_c,q_85,enc_auto/greatseljuk.webp',
-      'Khwarazmian Empire': 'https://static.wixstatic.com/media/fbe150_977b262160c241638871a574e442171e~mv2.png/v1/fill/w_2560,h_1683,al_c,q_95,enc_auto/khwarazmia.png',
-      'Mongol Conquest Intermezzo': 'https://static.wixstatic.com/media/fbe150_dec010573026455088fe0a25b78b510b~mv2.png/v1/fill/w_800,h_533,al_c,q_90,enc_auto/mongol.png',
-      'Ilkhanate': 'https://static.wixstatic.com/media/fbe150_1900b43464e14779a7310567878315c1~mv2.png/v1/fill/w_266,h_190,al_c,q_85,enc_auto/ilkhanate.png',
-      'Muzaffarids': 'https://static.wixstatic.com/media/fbe150_8156ccfd6b644377b5d61a056e6cb0b3~mv2.png/v1/fill/w_640,h_266,al_c,q_85,enc_auto/muzaffarid.png',
-      'Qara Qoyunlu': 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Flag_of_Kara_Koyunlu_dynasty.png',
-      'Timurid Empire': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Timurid_Empire_flag.svg/800px-Timurid_Empire_flag.svg.png?20230721132008',
-      'Aq Qoyunlu': 'https://static.wixstatic.com/media/fbe150_0160fde230d646799f53a3e4fb61f5d4~mv2.webp/v1/fill/w_800,h_533,al_c,q_85,enc_auto/aqqonqly.webp',
-      'Safavid Empire': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Safavid_Flag.svg/1280px-Safavid_Flag.svg.png',
-      'Afsharid Empire': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Nader_Shah_Flag.svg/800px-Nader_Shah_Flag.svg.png?20121118035022',
-      'Zand Dynasty': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Zand_Dynasty_flag.svg/1920px-Zand_Dynasty_flag.svg.png',
-      'Qajar Dynasty': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Mohammad_Shah_Qajar_Flag.svg/1280px-Mohammad_Shah_Qajar_Flag.svg.png',
-      'Pahlavi Dynasty': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/State_flag_of_Iran_%281964%E2%80%931980%29.svg/1920px-State_flag_of_Iran_%281964%E2%80%931980%29.svg.png',
-      'Sasanian Empire': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Derafsh_Kaviani_flag_of_the_late_Sassanid_Empire.svg/1024px-Derafsh_Kaviani_flag_of_the_late_Sassanid_Empire.svg.png',
-      'Islamic Republic of Iran': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Flag_of_Iran.svg/1024px-Flag_of_Iran.svg.png'
+    const FLAG_FILES = [
+      'Abbasid Caliphate.png',
+      'Achaemenid Empire.png',
+      'Afsharid Empire.png',
+      'Aq Qoyunlu.png',
+      'Buyid Confederation.png',
+      'Ghaznavid Empire.png',
+      'Great Seljuk Empire.png',
+      'Ilkhanate.png',
+      'Islamic Republic.png',
+      'Khwarazmian Empire.png',
+      'Macedonian Rule.png',
+      'Median Empire.png',
+      'Middle Elam.png',
+      'Mongol Conquest Intermezzo.png',
+      'Muzaffarids.png',
+      'Neo Elam.png',
+      'Old Elam.png',
+      'Pahlavi Dynasty.png',
+      'Parthian Empire.png',
+      'Proto Elam.png',
+      'Qajar Dynasty.png',
+      'Qara Qoyunlu.png',
+      'Rashidun Caliphate.png',
+      'Safavid Empire.png',
+      'Saffarid Emirate.png',
+      'Samanid Empire.png',
+      'Sasanian Empire.png',
+      'Seleucid Empire.png',
+      'Tahirid Empirate.png',
+      'Timurid Empire.png',
+      'Zand Dynasty.png'
+    ];
+    const FLAG_BASE_PATH = 'Flags/';
+    const FLAG_NAME_ALIASES = {
+      'proto elamite': 'proto elam',
+      'old elamite': 'old elam',
+      'middle elamite': 'middle elam',
+      'neo elamite': 'neo elam',
+      'parthian arsacid empire': 'parthian empire',
+      'macedonian argead rule': 'macedonian rule',
+      'seleucid empire in iran': 'seleucid empire',
+      'tahirid emirate khorasan': 'tahirid empirate',
+      'abbasid caliphate direct control': 'abbasid caliphate',
+      'islamic republic of iran': 'islamic republic'
     };
+    function normalizeFlagName(value){
+      return value
+        .toLowerCase()
+        .replace(/\.png$/i, '')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+    }
+    const FLAG_FILE_MAP = Object.fromEntries(
+      FLAG_FILES.map((file) => [normalizeFlagName(file), file])
+    );
+    // Backup remote links (kept for reference only).
+    // const REMOTE_IMAGE_FILLS = {
+    //   'Median Empire': 'https://preview.redd.it/medes-empire-flag-corrected-v0-2huvula06e8b1.jpg?width=1080&crop=smart&auto=webp&s=05d50718f24ba7860ecd287706e8ae385372ffe6',
+    //   'Achaemenid Empire': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Standard_of_Cyrus_the_Great.svg/1024px-Standard_of_Cyrus_the_Great.svg.png',
+    //   'Macedonian/Argead Rule': 'https://static.wixstatic.com/media/fbe150_f4bd28b995e8493d9992919676a8c16d~mv2.webp/v1/fill/w_3300,h_2200,al_c,q_90,enc_auto/macedonian.webp',
+    //   'Seleucid Empire (in Iran)': 'https://static.wixstatic.com/media/fbe150_8bc877788a8f48589fa2c9c0d5e226d7~mv2.webp/v1/fill/w_960,h_640,al_c,q_85,enc_auto/seleuidempire.webp',
+    //   'Parthian (Arsacid) Empire': 'https://static.wixstatic.com/media/fbe150_5c1a05e588184909b52d79dc7dea7ae0~mv2.webp/v1/fill/w_2560,h_1711,al_c,q_90,enc_auto/parthian.webp',
+    //   'Rashidun Caliphate': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Rashidun_Caliphate_Flag.png/1024px-Rashidun_Caliphate_Flag.png',
+    //   'Abbasid Caliphate (direct control)': 'https://static.wixstatic.com/media/fbe150_8ed1bfbb73e04e08a407393c26e58c27~mv2.jpg/v1/fill/w_736,h_414,al_c,q_80,enc_auto/abbasid%20calliphae.jpg',
+    //   'Tahirid Emirate (Khorasan)': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Flag_of_the_Tahirids.svg/1280px-Flag_of_the_Tahirids.svg.png?20240114193849',
+    //   'Samanid Empire': 'https://static.wixstatic.com/media/fbe150_213c52d382e047d394587f936b9d7908~mv2.webp/v1/fill/w_1000,h_666,al_c,q_85,enc_auto/Samanid.webp',
+    //   'Saffarid Emirate': 'https://static.wixstatic.com/media/fbe150_5728d3144c9343fc9a0838eceb37fc07~mv2.jpg/v1/fill/w_736,h_414,al_c,q_80,enc_auto/saffaid.jpg',
+    //   'Buyid Confederation': 'https://static.wixstatic.com/media/fbe150_98f26b9a06e74dd8a09ea6dfdfc34c09~mv2.webp/v1/fill/w_2560,h_1440,al_c,q_90,enc_auto/buyid.webp',
+    //   'Ghaznavid Empire': 'https://static.wixstatic.com/media/fbe150_e69c26be77f441b692279df0d3a4e4dc~mv2.webp/v1/fill/w_1200,h_800,al_c,q_85,enc_auto/ghaznavid.webp',
+    //   'Great Seljuk Empire': 'https://static.wixstatic.com/media/fbe150_6093a2cc263447c2aa13ab6c6adec1dc~mv2.webp/v1/fill/w_1200,h_729,al_c,q_85,enc_auto/greatseljuk.webp',
+    //   'Khwarazmian Empire': 'https://static.wixstatic.com/media/fbe150_977b262160c241638871a574e442171e~mv2.png/v1/fill/w_2560,h_1683,al_c,q_95,enc_auto/khwarazmia.png',
+    //   'Mongol Conquest Intermezzo': 'https://static.wixstatic.com/media/fbe150_dec010573026455088fe0a25b78b510b~mv2.png/v1/fill/w_800,h_533,al_c,q_90,enc_auto/mongol.png',
+    //   'Ilkhanate': 'https://static.wixstatic.com/media/fbe150_1900b43464e14779a7310567878315c1~mv2.png/v1/fill/w_266,h_190,al_c,q_85,enc_auto/ilkhanate.png',
+    //   'Muzaffarids': 'https://static.wixstatic.com/media/fbe150_8156ccfd6b644377b5d61a056e6cb0b3~mv2.png/v1/fill/w_640,h_266,al_c,q_85,enc_auto/muzaffarid.png',
+    //   'Qara Qoyunlu': 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Flag_of_Kara_Koyunlu_dynasty.png',
+    //   'Timurid Empire': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Timurid_Empire_flag.svg/800px-Timurid_Empire_flag.svg.png?20230721132008',
+    //   'Aq Qoyunlu': 'https://static.wixstatic.com/media/fbe150_0160fde230d646799f53a3e4fb61f5d4~mv2.webp/v1/fill/w_800,h_533,al_c,q_85,enc_auto/aqqonqly.webp',
+    //   'Safavid Empire': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Safavid_Flag.svg/1280px-Safavid_Flag.svg.png',
+    //   'Afsharid Empire': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Nader_Shah_Flag.svg/800px-Nader_Shah_Flag.svg.png?20121118035022',
+    //   'Zand Dynasty': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Zand_Dynasty_flag.svg/1920px-Zand_Dynasty_flag.svg.png',
+    //   'Qajar Dynasty': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Mohammad_Shah_Qajar_Flag.svg/1280px-Mohammad_Shah_Qajar_Flag.svg.png',
+    //   'Pahlavi Dynasty': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/State_flag_of_Iran_%281964%E2%80%931980%29.svg/1920px-State_flag_of_Iran_%281964%E2%80%931980%29.svg.png',
+    //   'Sasanian Empire': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Derafsh_Kaviani_flag_of_the_late_Sassanid_Empire.svg/1024px-Derafsh_Kaviani_flag_of_the_late_Sassanid_Empire.svg.png',
+    //   'Islamic Republic of Iran': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Flag_of_Iran.svg/1024px-Flag_of_Iran.svg.png'
+    // };
 
     function buildCandidates(url){
       const out=[url];
@@ -319,7 +376,14 @@
       return out;
     }
     window.CUSTOM_FLAGS = window.CUSTOM_FLAGS || {};
-    function getFlagUrl(name){ return (window.CUSTOM_FLAGS && window.CUSTOM_FLAGS[name]) || IMAGE_FILLS[name] || null; }
+    function getFlagUrl(name){
+      const custom = window.CUSTOM_FLAGS && window.CUSTOM_FLAGS[name];
+      if(custom){ return custom; }
+      const key = normalizeFlagName(name);
+      const aliasKey = FLAG_NAME_ALIASES[key] || key;
+      const file = FLAG_FILE_MAP[aliasKey];
+      return file ? encodeURI(`${FLAG_BASE_PATH}${file}`) : null;
+    }
 
     // Use <image> (not foreignObject) to avoid cropping issues
     function appendFlagImage(x,y,w,h,url,name,scope,start,end){
@@ -345,7 +409,7 @@
       'Ilkhanate': '#1E40AF', 'Jalayirids': '#991B1B', 'Chobanids': '#1F2937', 'Injuids': '#BE123C',
       'Muzaffarids': '#EA580C', 'Sarbadars': '#92400E', 'Kartids': '#6B8E23',
       'Timurid Empire': '#2563EB', 'Qara Qoyunlu': '#0A0A0A', 'Aq Qoyunlu': '#D1D5DB',
-      'Safavid Empire': '#166534', 'Hotak (Afghan) Occupation': '#7C2D12', 'Safavid Restoration': '#1A7F3B',
+      'Safavid Empire': '#166534', 'Hotak (Afghan) Occupation': '#000000', 'Safavid Restoration': '#1A7F3B',
       'Afsharid Empire': '#C2410C', 'Zand Dynasty': '#10B981', 'Qajar Dynasty': '#1E7F5C', 'Pahlavi Dynasty': '#1F4E79',
       'Islamic Republic of Iran': '#0E9F6E'
     };
@@ -763,7 +827,7 @@
           { start: activeMin, end: bce(678), label: 'Polytheism', color: POLY_COLOR, labelFa:'چندخدایی' },
           { start: bce(678), end: 651, label: 'Zoroastrianism', color: Z_COLOR, labelFa:'زرتشتی' },
           { start: 651, end: 1501, label: 'Sunni Islam', color: SUNNI_COLOR, labelFa:'اسلام سنی' },
-          { start: 1501, end: 2025, label: 'Twelver Shia Islam', color: SHIA_COLOR, labelFa:'اسلام شیعه دوازده‌امامی' }
+          { start: 1501, end: 2026, label: 'Twelver Shia Islam', color: SHIA_COLOR, labelFa:'اسلام شیعه دوازده‌امامی' }
         ];
         for(const s of segsInView(relSpans)){
           const y0=yearToY(s.end), y1=yearToY(s.start), h=y1-y0;
@@ -916,7 +980,7 @@
       const prev = colWidthFrac; colWidthFrac = 0.05; render(); colWidthFrac = 0.3; render(); colWidthFrac = 0.9; render(); colWidthFrac = prev;
       // foreign text not undefined
       const fg = {start:bce(330), end:bce(247), label:'Greek Rule', color:'#ef4444'}; const s={start:fg.start,end:fg.end,raw:fg};
-      const lbl = `${fg.label} — ${toLabelEN(fg.start)} to ${toLabelEN(fg.end)} — ${( (fg.end-fg.start)/ (2025 - bce(3200)) * 100).toFixed(1)}%`;
+      const lbl = `${fg.label} — ${toLabelEN(fg.start)} to ${toLabelEN(fg.end)} — ${( (fg.end-fg.start)/ (2026 - bce(3200)) * 100).toFixed(1)}%`;
       console.assert(lbl.includes('Greek Rule'), 'foreign label string defined');
       // FA numerals
       const faNum = toFaDigits('1234567890'); console.assert(faNum==='۱۲۳۴۵۶۷۸۹۰','FA digits mapping');
