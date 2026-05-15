@@ -7,66 +7,265 @@
   <link rel="icon" href="History logo.png" />
   <style>
     :root {
-      --bg: #0b0f16;
-      --fg: #e8eef7;
-      --muted: #9fb0c6;
-      --axis: #223049;
+      --bg: #090806;
+      --bg2: #10141a;
+      --fg: #f3ead8;
+      --muted: #b8aa91;
+      --axis: rgba(106, 163, 197, 0.34);
+      --panel: rgba(16, 20, 25, 0.84);
+      --panel2: rgba(28, 24, 18, 0.72);
+      --line: rgba(214, 178, 92, 0.22);
+      --accent: #58a9d6;
+      --accent2: #c99335;
+      --accent3: #8f2f2a;
       --labelWidth: 560px;
-      --panelW: 340px;
-      --accent: #7fb4ff;
+      --panelW: 336px;
+      --safeTop: env(safe-area-inset-top, 0px);
+      --safeBottom: env(safe-area-inset-bottom, 0px);
+      --appH: 100vh;
+      --controlBarH: 0px;
     }
-    html, body { height: 100%; margin: 0; }
-    body { background: var(--bg); color: var(--fg); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
-    #wrap { position: fixed; inset: 0; display: grid; grid-template-rows: auto 1fr; }
-    header { padding: 12px 16px; border-bottom: 1px solid #141c2a; display: flex; align-items: baseline; gap: 16px; }
-    header h1 { margin: 0; font-size: clamp(16px, 2.2vw, 22px); font-weight: 650; letter-spacing: 0.2px; display: inline-flex; align-items: center; gap: 10px; }
-    header h1 img { height: 1em; width: auto; display: inline-block; flex-shrink: 0; }
-    header .sub { color: var(--muted); font-size: clamp(11px, 1.5vw, 13px); }
+    :root[data-theme="light"] {
+      --bg: #f2eadb;
+      --bg2: #e8dcc8;
+      --fg: #17120d;
+      --muted: #675d4d;
+      --axis: rgba(50, 86, 112, 0.34);
+      --panel: rgba(252, 247, 237, 0.88);
+      --panel2: rgba(239, 228, 210, 0.78);
+      --line: rgba(116, 78, 32, 0.20);
+      --accent: #236f98;
+      --accent2: #9c671d;
+      --accent3: #a53a32;
+    }
+    html, body { height: 100%; margin: 0; overflow: hidden; }
+    body {
+      background:
+        radial-gradient(circle at 14% -10%, rgba(89, 169, 214, 0.14), transparent 34%),
+        radial-gradient(circle at 92% 18%, rgba(201, 147, 53, 0.10), transparent 28%),
+        linear-gradient(135deg, var(--bg), var(--bg2));
+      color: var(--fg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      overscroll-behavior: none;
+    }
+    * { box-sizing: border-box; }
+    #wrap { position: fixed; inset: 0; height: var(--appH); min-height: 100dvh; display: grid; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; }
+    #wrap::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.34;
+      background-image:
+        linear-gradient(45deg, transparent 0 47%, rgba(201,147,53,0.12) 48% 52%, transparent 53% 100%),
+        linear-gradient(-45deg, transparent 0 47%, rgba(88,169,214,0.09) 48% 52%, transparent 53% 100%);
+      background-size: 38px 38px;
+      mask-image: linear-gradient(to bottom, black, transparent 58%);
+    }
+    header {
+      position: relative;
+      z-index: 30;
+      min-height: calc(66px + var(--safeTop));
+      padding: calc(14px + var(--safeTop)) 16px 12px;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: minmax(200px, auto) minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 18px;
+      background: color-mix(in srgb, var(--bg) 84%, transparent);
+      backdrop-filter: blur(10px) saturate(112%);
+    }
+    header h1 { margin: 0; font-size: clamp(18px, 2vw, 24px); font-weight: 760; letter-spacing: 0; display: inline-flex; align-items: center; gap: 10px; white-space: nowrap; }
+    header h1 img { height: 1.05em; width: auto; display: inline-block; flex-shrink: 0; filter: drop-shadow(0 0 8px rgba(201,147,53,0.28)); }
+    header .sub { justify-self: center; max-width: 82ch; color: var(--muted); font-size: 12px; line-height: 1.35; min-width: 0; }
+    .top-actions { margin-left: auto; display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+    .action-btn, .sheet-close {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--panel) 90%, white 5%), color-mix(in srgb, var(--panel2) 92%, black 4%));
+      color: var(--fg);
+      border-radius: 999px;
+      min-height: 36px;
+      padding: 8px 12px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 10px 24px rgba(0,0,0,0.18);
+    }
+    .action-btn:hover, .sheet-close:hover { border-color: color-mix(in srgb, var(--accent) 70%, var(--accent2)); background: color-mix(in srgb, var(--panel) 78%, var(--accent) 12%); }
+    button:focus-visible, input:focus-visible, #viz:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
-    #stage { position: relative; }
-    #viz { width: 100%; height: 100%; min-height: 640px; display: block; cursor: grab; }
+    #stage { position: relative; min-height: 0; overflow: hidden; }
+    #viz { width: 100%; height: 100%; min-height: 0; display: block; cursor: grab; touch-action: none; user-select: none; }
     #viz.dragging { cursor: grabbing; }
 
-    /* Controls */
-    #panel { position: absolute; bottom: 16px; right: 16px; width: var(--panelW); max-width: 48vw; color: var(--fg);
-      background: linear-gradient(180deg, rgba(28,36,52,0.7), rgba(20,28,42,0.8)); backdrop-filter: blur(14px) saturate(120%);
-      border: 1px solid rgba(255,255,255,0.10);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.35); border-radius: 14px; padding: 12px 14px; transition: transform .18s ease; overflow: visible; }
-    #panel.collapsed { transform: translateX(calc(100% - 28px)); }
-    #panel h2 { margin: 0 0 8px 0; font-size: 14px; font-weight: 650; letter-spacing: 0.2px; color: var(--muted); display:flex; align-items:center; justify-content:space-between; }
-    #panel .facts { margin: 6px 0 10px 0; font-size: 12px; line-height: 1.5; color: var(--muted); }
+    #panel {
+      position: absolute;
+      bottom: 18px;
+      right: 18px;
+      width: var(--panelW);
+      max-width: 46vw;
+      color: var(--fg);
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--panel) 96%, transparent), color-mix(in srgb, var(--panel2) 92%, transparent)),
+        linear-gradient(90deg, rgba(201,147,53,0.12), transparent 36%);
+      backdrop-filter: blur(16px) saturate(116%);
+      border: 1px solid var(--line);
+      border-top-color: color-mix(in srgb, var(--line) 70%, white 20%);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.38);
+      border-radius: 8px;
+      padding: 12px;
+      transition: transform .18s ease, opacity .18s ease;
+      overflow: visible;
+      z-index: 20;
+    }
+    #panel::before {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      border: 1px solid color-mix(in srgb, var(--line) 52%, transparent);
+      border-radius: 5px;
+      pointer-events: none;
+    }
+    #panel.collapsed { transform: translateX(calc(100% - 30px)); }
+    #panel h2 { position: relative; margin: 0 0 8px 0; min-height: 28px; font-size: 13px; font-weight: 820; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent2); display:flex; align-items:center; justify-content:space-between; }
+    #panel .facts { position: relative; margin: 0 0 10px 0; font-size: 11px; line-height: 1.45; color: var(--muted); }
     #panel .facts b { color: var(--fg); }
-    #panel .row { display:flex; gap:8px; align-items:center; flex-wrap: wrap; }
-    #panel .section { margin: 8px 0; padding: 8px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); }
+    #panel .row { position: relative; display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:7px; align-items:center; }
+    #panel .section { position: relative; margin: 8px 0; padding: 9px; border-radius: 7px; background: color-mix(in srgb, var(--panel2) 62%, transparent); border: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+    #panel .section::before { content: ""; position: absolute; left: 9px; right: 9px; top: -1px; height: 1px; background: linear-gradient(90deg, transparent, var(--accent2), transparent); opacity: 0.5; }
 
-    .toggle { appearance: none; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.06); color: var(--fg);
-      border-radius: 999px; padding: 6px 10px; font-size: 12px; cursor: pointer; user-select: none; }
-    .toggle.on { background: rgba(127,180,255,0.18); border-color: var(--accent); box-shadow: 0 0 0 1px rgba(127,180,255,0.35) inset; }
+    .toggle {
+      appearance: none;
+      border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+      background: color-mix(in srgb, var(--panel) 78%, transparent);
+      color: var(--fg);
+      border-radius: 6px;
+      min-height: 34px;
+      padding: 7px 8px;
+      font-size: 11px;
+      font-weight: 760;
+      cursor: pointer;
+      user-select: none;
+      text-align: left;
+      white-space: normal;
+      line-height: 1.18;
+    }
+    .toggle.on { background: color-mix(in srgb, var(--accent) 24%, var(--panel)); border-color: color-mix(in srgb, var(--accent) 72%, var(--accent2)); box-shadow: 0 0 0 1px rgba(88,169,214,0.18) inset; }
+    .toggle::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: var(--muted); box-shadow: 0 0 0 1px rgba(255,255,255,0.18); }
+    .toggle.on::before { background: var(--accent2); box-shadow: 0 0 10px color-mix(in srgb, var(--accent2) 70%, transparent); }
 
-    /* Panel lip */
-    #panel-tab { position: absolute; left: -28px; top: 0; bottom: 0; width: 28px; display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(180deg, rgba(28,36,52,0.9), rgba(20,28,42,0.9)); border: 1px solid rgba(255,255,255,0.10); border-right: none; border-radius: 8px 0 0 8px; cursor: pointer; }
-    #panel-tab span { font-size: 13px; color: var(--muted); transform: translateY(1px); }
+    #panel-tab { appearance: none; position: absolute; left: -30px; top: 18px; width: 30px; height: 46px; display: flex; align-items: center; justify-content: center; background: var(--panel); border: 1px solid var(--line); border-right: none; border-radius: 8px 0 0 8px; cursor: pointer; color: var(--accent2); padding: 0; }
+    #panel-tab span { font-size: 13px; color: var(--accent2); transform: translateY(1px); }
+    #panel-close { display: none; }
 
-    .slider { width: 100%; display:flex; gap:8px; align-items:center; }
-    .slider input[type=range] { -webkit-appearance:none; appearance:none; width:100%; height:6px; background:rgba(255,255,255,0.12); border-radius:999px; outline:none; }
-    .slider input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:14px; height:14px; border-radius:50%; background:#7fb4ff; border:1px solid rgba(255,255,255,0.7); box-shadow:0 0 0 3px rgba(127,180,255,0.25); cursor:pointer; }
-    .slider .value { font-size:11px; color: var(--muted); min-width:44px; text-align:right; }
+    .slider { width: 100%; display:grid; grid-template-columns: auto 1fr auto; gap:8px; align-items:center; }
+    .slider input[type=range] { -webkit-appearance:none; appearance:none; width:100%; height:7px; background: color-mix(in srgb, var(--fg) 10%, transparent); border-radius:999px; outline:none; }
+    .slider input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:17px; height:17px; border-radius:50%; background: var(--accent2); border:1px solid color-mix(in srgb, var(--fg) 70%, transparent); box-shadow:0 0 0 4px color-mix(in srgb, var(--accent2) 24%, transparent); cursor:pointer; }
+    .slider .value { font-size:11px; color: var(--muted); min-width:40px; text-align:right; }
+    #width-label { font-size:11px !important; color:var(--muted) !important; min-width:0 !important; }
 
     .tick text { fill: var(--muted); font-size: 9px; }
     .tick line, .axis-line { stroke: var(--axis); stroke-width: 1; shape-rendering: crispEdges; }
     .layer { shape-rendering: geometricPrecision; }
-    .label { font-size: clamp(8.0px, 1.0vw, 9.3px); fill: var(--fg); alignment-baseline: middle; }
+    .layer, .label, .flag, .period-hit { cursor: pointer; }
+    .label { font-size: clamp(8.0px, 1.0vw, 9.3px); fill: var(--fg); alignment-baseline: middle; font-weight: 680; paint-order: stroke; stroke: rgba(0,0,0,0.38); stroke-width: 2px; stroke-linejoin: round; }
+    :root[data-theme="light"] .label { stroke: rgba(255,255,255,0.55); }
     .label tspan.range { fill: var(--muted); }
-    .swatch { rx: 3; }
+    .swatch { rx: 2; }
     .brace { fill: none; stroke-width: 1.8; stroke-linecap: round; }
     .tickcap { stroke-width: 1.8; stroke-linecap: round; }
     .note { fill: var(--muted); font-size: clamp(9px, 1.1vw, 11px); }
 
-    /* Hover focus mode */
     #viz.dim-mode [data-name] { opacity: 0.12; transition: opacity .12s ease; }
     #viz.dim-mode .matched { opacity: 1 !important; filter: drop-shadow(0 0 3px rgba(255,255,255,0.25)); }
     #viz.dim-mode .overlap-blend { opacity: 0.12 !important; }
+
+    .mobile-controlbar { display: none; }
+    #help-overlay, #detail-overlay { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 18px; background: rgba(4,8,14,0.52); }
+    #help-overlay[hidden], #detail-overlay[hidden] { display: none; }
+    .help-card, .detail-page { width: min(460px, 100%); color: var(--fg); background: linear-gradient(180deg, color-mix(in srgb, var(--panel) 98%, transparent), color-mix(in srgb, var(--panel2) 96%, transparent)); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 24px 70px rgba(0,0,0,0.46); padding: 18px; }
+    .help-card h2, .detail-page h2 { margin: 0; font-size: 18px; letter-spacing: 0; }
+    .help-card ul { margin: 12px 0 0; padding-left: 20px; color: var(--muted); line-height: 1.55; font-size: 13px; }
+    .help-head, .detail-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .detail-page { min-height: min(440px, 72vh); display: grid; grid-template-rows: auto 1fr; }
+    .detail-body { display: grid; place-items: center; color: var(--muted); border: 1px dashed color-mix(in srgb, var(--line) 82%, transparent); margin-top: 18px; border-radius: 7px; font-size: 13px; text-align: center; padding: 20px; }
+    .detail-kind { margin-top: 5px; color: var(--accent2); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; }
+    [dir="rtl"] .help-card ul { padding-left: 0; padding-right: 20px; }
+
+    @media (max-width: 1024px) {
+      :root { --labelWidth: 320px; --panelW: 360px; }
+      header { grid-template-columns: auto minmax(0,1fr) auto; align-items: center; }
+      header .sub { max-width: 70ch; }
+      #panel { max-width: min(430px, 58vw); }
+      .toggle, .action-btn { min-height: 40px; }
+      .slider input[type=range] { height: 8px; }
+      .slider input[type=range]::-webkit-slider-thumb { width: 20px; height: 20px; }
+    }
+
+    @media (max-width: 767px) {
+      :root { --labelWidth: 188px; --panelW: 100vw; --controlBarH: calc(50px + var(--safeBottom)); }
+      header {
+        min-height: calc(48px + var(--safeTop));
+        padding: calc(8px + var(--safeTop)) 8px 8px;
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+      header h1 { justify-self: center; font-size: clamp(15px, 4.4vw, 18px); line-height: 1; max-width: calc(100vw - 18px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      header h1 img { height: 1em; }
+      header .sub, .top-actions { display: none; }
+      #viz { height: calc(100% - var(--controlBarH)); }
+      #panel {
+        position: fixed;
+        left: 8px;
+        right: 8px;
+        bottom: calc(8px + var(--controlBarH));
+        width: auto;
+        max-width: none;
+        max-height: min(70dvh, 520px);
+        padding: 12px;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        border-radius: 9px;
+        backdrop-filter: blur(8px) saturate(108%);
+        transform: translateY(calc(100% + var(--controlBarH) + 24px));
+      }
+      #panel.sheet-open { transform: translateY(0); }
+      #panel.collapsed { transform: translateY(calc(100% + var(--controlBarH) + 24px)); }
+      #panel-tab { display: none; }
+      #panel-close { display: inline-flex; align-items: center; justify-content: center; min-height: 32px; padding: 6px 10px; }
+      #panel .section { padding: 8px; border-radius: 7px; }
+      #panel .row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+      .toggle { min-height: 38px; padding: 7px 8px; font-size: 11px; }
+      .slider { align-items: stretch; grid-template-columns: 1fr auto; gap: 9px; }
+      .slider label { grid-column: 1 / -1; }
+      .slider input[type=range] { height: 9px; }
+      .slider input[type=range]::-webkit-slider-thumb { width: 22px; height: 22px; }
+      .slider .value { min-width: 0; text-align: right; }
+      .mobile-controlbar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 45;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+        padding: 7px 8px calc(7px + var(--safeBottom));
+        background: linear-gradient(180deg, rgba(9,8,6,0), color-mix(in srgb, var(--bg) 92%, transparent) 34%, var(--bg));
+      }
+      .mobile-controlbar .action-btn { min-width: 0; width: 100%; min-height: 36px; padding: 6px 4px; font-size: 11px; background: color-mix(in srgb, var(--panel) 88%, transparent); }
+      #help-overlay, #detail-overlay { align-items: end; padding: 12px 12px calc(12px + var(--safeBottom)); }
+      .help-card, .detail-page { border-radius: 10px; }
+      .help-card ul { font-size: 14px; }
+      .label { font-size: 8.5px; stroke-width: 1.6px; }
+      .note { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #panel, #viz.dim-mode [data-name] { transition: none; }
+    }
   </style>
 </head>
 <body>
@@ -77,13 +276,19 @@
         <span id="site-title-text">History of Iran Layered</span>
       </h1>
       <div class="sub">Bottom = earliest (Proto‑Elamite, 3200 BCE). Top = most recent (Islamic Republic of Iran, 2026). Scroll to zoom, drag to pan. Double‑click to reset.</div>
+      <div id="top-actions" class="top-actions">
+        <button id="theme-button" class="action-btn" type="button" aria-pressed="false">Light</button>
+        <button id="help-button" class="action-btn" type="button" aria-haspopup="dialog" aria-controls="help-overlay">Help</button>
+        <button id="reset-button" class="action-btn" type="button">Reset</button>
+      </div>
     </header>
     <div id="stage">
-      <svg id="viz" role="img" aria-label="Vertical sediment timeline of Iranian ruling entities, zoomable and pannable"></svg>
-      <div id="panel">
-        <div id="panel-tab" title="Toggle options"><span>◀</span></div>
+      <svg id="viz" role="img" tabindex="0" aria-label="Vertical sediment timeline of Iranian ruling entities, zoomable and pannable"></svg>
+      <div id="panel" aria-label="Visualization options">
+        <button id="panel-tab" type="button" title="Toggle options" aria-label="Toggle options panel" aria-expanded="true" aria-controls="panel"><span>◀</span></button>
         <h2>
           <span id="options-title">Options</span>
+          <button id="panel-close" class="sheet-close" type="button" aria-label="Close options">Close</button>
         </h2>
         <div id="facts" class="facts"></div>
         <div class="section">
@@ -110,6 +315,33 @@
           </div>
         </div>
       </div>
+      <div id="mobile-controlbar" class="mobile-controlbar" aria-label="Timeline controls">
+        <button id="mobile-options" class="action-btn" type="button" aria-expanded="false" aria-controls="panel">Options</button>
+        <button id="mobile-reset" class="action-btn" type="button">Reset</button>
+        <button id="mobile-theme" class="action-btn" type="button" aria-pressed="false">Light</button>
+        <button id="mobile-help" class="action-btn" type="button" aria-haspopup="dialog" aria-controls="help-overlay">Help</button>
+      </div>
+    </div>
+  </div>
+  <div id="help-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <div class="help-card">
+      <div class="help-head">
+        <h2 id="help-title">How to use</h2>
+        <button id="help-close" class="sheet-close" type="button" aria-label="Close help">Close</button>
+      </div>
+      <ul id="help-list"></ul>
+    </div>
+  </div>
+  <div id="detail-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="detail-title">
+    <div class="detail-page">
+      <div class="detail-head">
+        <div>
+          <h2 id="detail-title">Dynasty</h2>
+          <div id="detail-kind" class="detail-kind">Layer page</div>
+        </div>
+        <button id="detail-close" class="sheet-close" type="button" aria-label="Close page">Close</button>
+      </div>
+      <div id="detail-body" class="detail-body">Content space reserved for future interactive history modules.</div>
     </div>
   </div>
 
@@ -128,6 +360,24 @@
     const elFacts = document.getElementById('facts');
     const elWidthSlider = document.getElementById('width-slider');
     const elWidthValue = document.getElementById('width-value');
+    const elTopActions = document.getElementById('top-actions');
+    const btnHelp = document.getElementById('help-button');
+    const btnReset = document.getElementById('reset-button');
+    const btnTheme = document.getElementById('theme-button');
+    const btnMobileOptions = document.getElementById('mobile-options');
+    const btnMobileReset = document.getElementById('mobile-reset');
+    const btnMobileTheme = document.getElementById('mobile-theme');
+    const btnMobileHelp = document.getElementById('mobile-help');
+    const btnPanelClose = document.getElementById('panel-close');
+    const elHelpOverlay = document.getElementById('help-overlay');
+    const elHelpTitle = document.getElementById('help-title');
+    const elHelpList = document.getElementById('help-list');
+    const btnHelpClose = document.getElementById('help-close');
+    const elDetailOverlay = document.getElementById('detail-overlay');
+    const elDetailTitle = document.getElementById('detail-title');
+    const elDetailKind = document.getElementById('detail-kind');
+    const elDetailBody = document.getElementById('detail-body');
+    const btnDetailClose = document.getElementById('detail-close');
 
     const btnOverlap = document.getElementById('toggle-overlap');
     const btnFlags = document.getElementById('toggle-flags');
@@ -162,13 +412,16 @@
     function rgbToHex(r,g,b){ const t=v=>('0'+v.toString(16)).slice(-2); return '#' + t(r)+t(g)+t(b); }
     function blendColors(hexes){ const rgbs=hexes.map(hexToRgb); const n=rgbs.length; const s=rgbs.reduce((a,c)=>({r:a.r+c.r/n,g:a.g+c.g/n,b:a.b+c.b/n}),{r:0,g:0,b:0}); return rgbToHex(Math.round(s.r),Math.round(s.g),Math.round(s.b)); }
 
+    const labelWidthCache = new Map();
     function measureLabelWidth(str){
+      const cacheKey = `${lang}|${isCompactLayout()?'compact':'wide'}|${str}`;
+      if(labelWidthCache.has(cacheKey)) return labelWidthCache.get(cacheKey);
       const tmp=document.createElementNS('http://www.w3.org/2000/svg','text');
       tmp.setAttribute('class','label'); tmp.setAttribute('x',-9999); tmp.setAttribute('y',-9999);
       if(lang==='fa'){ tmp.setAttribute('direction','rtl'); tmp.setAttribute('unicode-bidi','plaintext'); tmp.setAttribute('text-anchor','start'); }
       tmp.textContent=str; svg.appendChild(tmp);
       const w = typeof tmp.getComputedTextLength==='function' ? tmp.getComputedTextLength() : tmp.getBBox().width;
-      svg.removeChild(tmp); return w;
+      svg.removeChild(tmp); labelWidthCache.set(cacheKey, w); return w;
     }
 
     // =====================
@@ -193,7 +446,19 @@
         pctNoteInc: 'Percentages are relative to the active span (Elam included).',
         pctNoteExc: 'Percentages are relative to the active span (Elam excluded).',
         footer: 'Overlap: SPLIT = equal strips per ruler; BLEND = averaged color. Small/clustered labels dim at full zoom-out, then fade in as you zoom.',
-        widthLabel: 'Graphic width'
+        widthLabel: 'Graphic width',
+        helpTitle: 'How to use',
+        helpDesktop: ['Scroll to zoom', 'Drag to pan', 'Double-click to reset', 'Use Options to change layers'],
+        helpTouch: ['Drag with one finger to pan', 'Pinch with two fingers to zoom', 'Tap Reset to refit the timeline', 'Open Options to change layers'],
+        reset: 'Reset',
+        help: 'Help',
+        close: 'Close',
+        themeLight: 'Light',
+        themeDark: 'Dark',
+        optionsShort: 'Options',
+        pageKindDynasty: 'Dynasty page',
+        pageKindPeriod: 'Period page',
+        pageEmpty: 'Content space reserved for future interactive history modules.'
       },
       fa: {
         title: 'تاریخ لایه‌ای ایران',
@@ -212,7 +477,19 @@
         pctNoteInc: 'درصدها نسبت به بازهٔ فعال تاریخ ایران محاسبه شده‌اند (با ایلام).',
         pctNoteExc: 'درصدها نسبت به بازهٔ فعال تاریخ ایران محاسبه شده‌اند (بدون ایلام).',
         footer: 'هم‌پوشانی: «تقسیم» = تقسیم برابر؛ «ترکیب» = میانگین رنگ. برچسب‌های کوچک/خوشه‌ای در نمای کلی کم‌رنگ‌اند و با بزرگ‌نمایی پررنگ می‌شوند.',
-        widthLabel: 'عرض نمودار'
+        widthLabel: 'عرض نمودار',
+        helpTitle: 'راهنما',
+        helpDesktop: ['اسکرول برای بزرگ‌نمایی', 'کشیدن برای جابه‌جایی', 'دوبارکلیک برای بازنشانی', 'از گزینه‌ها برای تغییر لایه‌ها استفاده کنید'],
+        helpTouch: ['با یک انگشت جابه‌جا کنید', 'با دو انگشت بزرگ‌نمایی کنید', 'برای بازچینی نما Reset را بزنید', 'برای تغییر لایه‌ها گزینه‌ها را باز کنید'],
+        reset: 'بازنشانی',
+        help: 'راهنما',
+        close: 'بستن',
+        themeLight: 'روشن',
+        themeDark: 'تیره',
+        optionsShort: 'گزینه‌ها',
+        pageKindDynasty: 'صفحه دودمان',
+        pageKindPeriod: 'صفحه دوره',
+        pageEmpty: 'این فضا برای ماژول‌های تعاملی آینده نگه داشته شده است.'
       }
     };
 
@@ -381,21 +658,35 @@
       return out;
     }
     window.CUSTOM_FLAGS = window.CUSTOM_FLAGS || {};
+    const flagUrlCache = new Map();
     function getFlagUrl(name){
+      const cacheKey = `${name}|${window.CUSTOM_FLAGS && window.CUSTOM_FLAGS[name] ? window.CUSTOM_FLAGS[name] : ''}`;
+      if(flagUrlCache.has(cacheKey)) return flagUrlCache.get(cacheKey);
       const custom = window.CUSTOM_FLAGS && window.CUSTOM_FLAGS[name];
-      if(custom){ return custom; }
+      if(custom){ flagUrlCache.set(cacheKey, custom); return custom; }
       const key = normalizeFlagName(name);
       const aliasKey = FLAG_NAME_ALIASES[key] || key;
       const file = FLAG_FILE_MAP[aliasKey];
-      return file ? encodeURI(`${FLAG_BASE_PATH}${file}`) : null;
+      const url = file ? encodeURI(`${FLAG_BASE_PATH}${file}`) : null;
+      flagUrlCache.set(cacheKey, url);
+      return url;
     }
 
     // Use <image> (not foreignObject) to avoid cropping issues
+    function shouldRenderFlag(w, h, zoomFrac){
+      const compact = isCompactLayout();
+      const minH = compact ? (zoomFrac > 0.42 ? 16 : 9) : 7;
+      const minW = compact ? 28 : 18;
+      return flagsEnabled && w >= minW && h >= minH;
+    }
     function appendFlagImage(x,y,w,h,url,name,scope,start,end){
       if(!url) return null; const urls=buildCandidates(url);
-      const g=document.createElementNS('http://www.w3.org/2000/svg','g'); g.setAttribute('class','flag'); if(name){ g.setAttribute('data-name',name);} if(scope){ g.setAttribute('data-scope',scope);} if(start!=null&&end!=null){ g.setAttribute('data-start',start); g.setAttribute('data-end',end);} 
+      const g=document.createElementNS('http://www.w3.org/2000/svg','g'); g.setAttribute('class','flag'); if(name){ g.setAttribute('data-name',name);} if(scope){ g.setAttribute('data-scope',scope);} if(start!=null&&end!=null){ g.setAttribute('data-start',start); g.setAttribute('data-end',end);}
       const img=document.createElementNS('http://www.w3.org/2000/svg','image'); img.setAttribute('x',x); img.setAttribute('y',y); img.setAttribute('width',w); img.setAttribute('height',h); img.setAttribute('preserveAspectRatio','none'); img.setAttributeNS('http://www.w3.org/1999/xlink','href',urls[0]); img.setAttribute('href',urls[0]);
+      img.setAttribute('decoding','async'); img.setAttribute('fetchpriority','low');
       let i=0; img.addEventListener('error',()=>{ i++; if(i<urls.length){ img.setAttributeNS('http://www.w3.org/1999/xlink','href',urls[i]); img.setAttribute('href',urls[i]); }});
+      attachPageMeta(g, { kind:'dynasty', name: dynastyName({name}), idName: name, start, end });
+      attachPageMeta(img, { kind:'dynasty', name: dynastyName({name}), idName: name, start, end });
       g.appendChild(img); svg.appendChild(g); return g;
     }
 
@@ -487,11 +778,113 @@
     let showDark = false;
     let showReligion = false;
     let showForeign = false;
+    let theme = 'dark';
     let panelCollapsed = false;
     let colWidthFrac = 0.52; // user-controlled via slider (30%..90% of plot width)
 
     let state = null; // { margin, plotH, colX, colW, yearToY, globalMin, globalMax, rtl }
     let viewMin = null, viewMax = null;
+    let viewX = 0;
+    let mobileSheetOpen = false;
+    let renderQueued = false;
+    let resizeTimer = null;
+    let initializedLayout = false;
+    let lastCompactMode = null;
+    let activePointerCount = 0;
+    const MIN_ZOOM_FRAC = 0.018;
+
+    function isCompactLayout(){ return window.matchMedia('(max-width: 767px)').matches; }
+    function isTabletLayout(){ return window.matchMedia('(min-width: 768px) and (max-width: 1024px)').matches; }
+    function getActiveData(){ return excludeElam ? entries.filter(e=>e.group!=='Elam') : entries.slice(); }
+    function getActiveBounds(){
+      const data = getActiveData();
+      return {
+        min: Math.min(...data.map(d => Math.min(d.start, d.end))),
+        max: Math.max(...data.map(d => Math.max(d.start, d.end)))
+      };
+    }
+    function currentSvgSize(){
+      const rect = svg.getBoundingClientRect();
+      return {
+        width: svg.clientWidth || rect.width || 900,
+        height: svg.clientHeight || rect.height || 900
+      };
+    }
+    function setAppHeight(){
+      document.documentElement.style.setProperty('--appH', `${window.innerHeight}px`);
+    }
+    function clampViewRange(){
+      const bounds = getActiveBounds();
+      if(viewMin==null || viewMax==null || !Number.isFinite(viewMin) || !Number.isFinite(viewMax) || viewMin>=viewMax){
+        viewMin = bounds.min; viewMax = bounds.max; return;
+      }
+      let span = viewMax - viewMin;
+      const fullSpan = bounds.max - bounds.min;
+      if(span >= fullSpan){
+        viewMin = bounds.min; viewMax = bounds.max; return;
+      }
+      span = clamp(span, fullSpan * MIN_ZOOM_FRAC, fullSpan);
+      if(viewMin < bounds.min){ viewMin = bounds.min; viewMax = viewMin + span; }
+      if(viewMax > bounds.max){ viewMax = bounds.max; viewMin = viewMax - span; }
+    }
+    function horizontalBounds(){
+      const size = currentSvgSize();
+      if(!state) return { min: 0, max: size.width };
+      const labelW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--labelWidth')) || 220;
+      const left = Math.min(0, state.colX - 84, state.braceX - 48);
+      const labelEdge = state.rtl ? state.baseLabelX - labelW - 72 : state.baseLabelX + labelW + 92;
+      const right = Math.max(size.width, state.colX + state.colW + 72, labelEdge);
+      return { min: left, max: right };
+    }
+    function clampViewX(){
+      const size = currentSvgSize();
+      const bounds = horizontalBounds();
+      const minX = bounds.min;
+      const maxX = Math.max(minX, bounds.max - size.width);
+      if(maxX <= minX){
+        viewX = minX;
+      } else {
+        viewX = clamp(viewX, minX, maxX);
+      }
+    }
+    function resetView(){
+      const bounds = getActiveBounds();
+      viewMin = bounds.min;
+      viewMax = bounds.max;
+      viewX = 0;
+    }
+    function makePageId(kind, name, start, end){
+      const slug = String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      return `${kind || 'period'}-${slug}-${start ?? ''}-${end ?? ''}`;
+    }
+    function attachPageMeta(el, meta){
+      if(!el || !meta || !meta.name) return el;
+      el.setAttribute('data-page-id', makePageId(meta.kind, meta.idName || meta.name, meta.start, meta.end));
+      el.setAttribute('data-page-kind', meta.kind || 'period');
+      el.setAttribute('data-page-name', meta.name);
+      if(meta.start != null) el.setAttribute('data-page-start', String(meta.start));
+      if(meta.end != null) el.setAttribute('data-page-end', String(meta.end));
+      return el;
+    }
+    function metaFromTarget(target){
+      const el = target && target.closest ? target.closest('[data-page-id]') : null;
+      if(!el) return null;
+      return {
+        id: el.getAttribute('data-page-id'),
+        kind: el.getAttribute('data-page-kind') || 'period',
+        name: el.getAttribute('data-page-name') || '',
+        start: Number(el.getAttribute('data-page-start')),
+        end: Number(el.getAttribute('data-page-end'))
+      };
+    }
+    function scheduleRender(){
+      if(renderQueued) return;
+      renderQueued = true;
+      requestAnimationFrame(()=>{
+        renderQueued = false;
+        render();
+      });
+    }
 
     // Hover focus with range
     let hoverDetails = null; // { name, start, end }
@@ -528,15 +921,24 @@
     // =====================
     function render(){
       const rtl = (lang==='fa');
+      const compact = isCompactLayout();
+      const tablet = isTabletLayout();
+      if(lastCompactMode === null) lastCompactMode = compact;
+      if(lastCompactMode !== compact){
+        viewX = 0;
+        labelWidthCache.clear();
+        lastCompactMode = compact;
+      }
       // Active data & bounds
-      const data = excludeElam ? entries.filter(e=>e.group!=='Elam') : entries.slice();
-      const activeMin = Math.min(...data.map(d => Math.min(d.start, d.end)));
-      const activeMax = Math.max(...data.map(d => Math.max(d.start, d.end)));
-      if(viewMin==null || viewMax==null || viewMin<activeMin || viewMax>activeMax){ viewMin=activeMin; viewMax=activeMax; }
+      const data = getActiveData();
+      const activeBounds = getActiveBounds();
+      const activeMin = activeBounds.min;
+      const activeMax = activeBounds.max;
+      clampViewRange();
 
       const W = svg.clientWidth || svg.getBoundingClientRect().width || 900;
       const H = svg.clientHeight || svg.getBoundingClientRect().height || 900;
-      svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+      svg.setAttribute('viewBox', `${viewX} 0 ${W} ${H}`);
       svg.innerHTML = '';
 
       // defs for hatch pattern (rule) and influence hatch
@@ -553,30 +955,38 @@
       const labelW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--labelWidth'))||560;
       const panelWcss = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--panelW'))||340;
 
-      const margin = rtl
-        ? { top:24, right: Math.max(labelW, 60+panelWcss), bottom:28, left:144 }
-        : { top:24, right: Math.max(labelW, 60+panelWcss), bottom:28, left:144 };
-      const plotW = Math.max(240, W - margin.left - margin.right);
+      const panelReserve = compact ? 0 : (tablet ? 42 : (60 + panelWcss));
+      const margin = compact
+        ? { top:18, right: (labelPlacement==='side' ? Math.min(labelW, Math.max(150, W*0.48)) : 22), bottom:18, left: Math.min(58, Math.max(46, W*0.13)) }
+        : { top:24, right: Math.max(labelW, panelReserve), bottom:28, left: (tablet ? 116 : 144) };
+      const plotW = Math.max(compact ? 96 : 240, W - margin.left - margin.right);
       const plotH = Math.max(200, H - margin.top - margin.bottom);
-      const colW = Math.max(40, Math.min(700, plotW * colWidthFrac));
+      const colW = Math.max(compact ? 44 : 40, Math.min(compact ? 360 : 700, plotW * colWidthFrac));
 
       // Column X and axis/label columns
       let colX, axisX, braceX, baseLabelX;
+      const axisGap = compact ? 18 : 30;
       if(rtl){
         axisX = W - margin.right;
-        colX  = axisX - 30 - colW;
+        colX  = axisX - axisGap - colW;
         braceX = colX - 10;
         baseLabelX = braceX - 14;
       } else {
         colX  = margin.left;
-        axisX = colX - 30;
+        axisX = colX - axisGap;
         braceX = colX + colW + 10;
         baseLabelX = braceX + 14;
       }
 
       const span = viewMax - viewMin;
       const yearToY = y => margin.top + plotH - ((y - viewMin)/span) * plotH;
-      state = { margin, plotH, colX, colW, braceX, baseLabelX, yearToY, globalMin: activeMin, globalMax: activeMax, rtl };
+      state = { margin, plotH, colX, colW, axisX, braceX, baseLabelX, yearToY, globalMin: activeMin, globalMax: activeMax, rtl };
+      clampViewX();
+      svg.setAttribute('viewBox', `${viewX} 0 ${W} ${H}`);
+      svg.dataset.viewMin = String(viewMin);
+      svg.dataset.viewMax = String(viewMax);
+      svg.dataset.viewSpan = String(viewMax - viewMin);
+      const currentZoomFrac = (viewMax-viewMin)/(activeMax-activeMin);
 
       const braceX2 = state.rtl ? (state.colX - 10) : (state.colX + state.colW + 10);
       const baseLabelX2 = state.rtl ? (braceX2 - 14) : (braceX2 + 14);
@@ -601,8 +1011,8 @@
         l.setAttribute('x1', colX); l.setAttribute('x2', colX+colW);
         l.setAttribute('y1', gy); l.setAttribute('y2', gy); l.setAttribute('opacity', 0.35);
         const tnode = document.createElementNS('http://www.w3.org/2000/svg','text');
-        const tx = axisX - 8; tnode.setAttribute('x', tx); tnode.setAttribute('y', gy);
-        tnode.setAttribute('text-anchor', 'end');
+        const tx = compact ? (rtl ? axisX + 6 : viewX + 4) : axisX - 8; tnode.setAttribute('x', tx); tnode.setAttribute('y', gy);
+        tnode.setAttribute('text-anchor', compact ? 'start' : 'end');
         if(rtl){ tnode.setAttribute('direction','rtl'); tnode.setAttribute('unicode-bidi','plaintext'); }
         tnode.textContent = toLabelLocal(y);
         g.appendChild(l); g.appendChild(tnode); svg.appendChild(g);
@@ -617,9 +1027,10 @@
         rect.setAttribute('width', colW); rect.setAttribute('height', h);
         rect.setAttribute('fill', d.hex); rect.setAttribute('class', 'layer');
         rect.setAttribute('data-name', d.name); rect.setAttribute('data-scope','full'); rect.setAttribute('data-start', a); rect.setAttribute('data-end', b);
+        attachPageMeta(rect, { kind:'dynasty', name: dynastyName(d), idName: d.name, start: d.start, end: d.end });
         svg.appendChild(rect);
         const url = getFlagUrl(d.name);
-        if (flagsEnabled && url){ appendFlagImage(colX, y0, colW, h, url, d.name, 'full', a, b); }
+        if (url && shouldRenderFlag(colW, h, currentZoomFrac)){ appendFlagImage(colX, y0, colW, h, url, d.name, 'full', a, b); }
       });
 
       // Overlap slices
@@ -640,9 +1051,9 @@
             for(let k=0;k<n;k++){
               const d = ordered[k]; const x = colX + (k*colW/n); const w = colW/n;
               const strip = document.createElementNS('http://www.w3.org/2000/svg','rect');
-              strip.setAttribute('x', x); strip.setAttribute('y', ry); strip.setAttribute('width', w); strip.setAttribute('height', rh); strip.setAttribute('fill', d.hex); strip.setAttribute('class','layer'); strip.setAttribute('data-name', d.name); strip.setAttribute('data-scope','split'); strip.setAttribute('data-start', a); strip.setAttribute('data-end', b); svg.appendChild(strip);
+              strip.setAttribute('x', x); strip.setAttribute('y', ry); strip.setAttribute('width', w); strip.setAttribute('height', rh); strip.setAttribute('fill', d.hex); strip.setAttribute('class','layer'); strip.setAttribute('data-name', d.name); strip.setAttribute('data-scope','split'); strip.setAttribute('data-start', a); strip.setAttribute('data-end', b); attachPageMeta(strip, { kind:'dynasty', name: dynastyName(d), idName: d.name, start: d.start, end: d.end }); svg.appendChild(strip);
               const url = getFlagUrl(d.name);
-              if (flagsEnabled && url){ appendFlagImage(x, ry, w, rh, url, d.name, 'split', a, b); }
+              if (url && shouldRenderFlag(w, rh, currentZoomFrac)){ appendFlagImage(x, ry, w, rh, url, d.name, 'split', a, b); }
             }
           }
         }
@@ -661,24 +1072,61 @@
                     .filter(s=>s.start < s.end);
       }
 
-      function drawOverlayRect(x,y,w,h, fill, opacity=0.7, cls=''){
+      function drawOverlayRect(x,y,w,h, fill, opacity=0.7, cls='', pageMeta=null){
         const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
         r.setAttribute('x', x); r.setAttribute('y', y); r.setAttribute('width', w); r.setAttribute('height', h);
         r.setAttribute('fill', fill); r.setAttribute('opacity', String(opacity)); if(cls) r.setAttribute('class', cls);
+        if(pageMeta) attachPageMeta(r, pageMeta);
         svg.appendChild(r);
+        return r;
       }
 
-      function drawForeignHatch(y0, h, color){
+      function drawForeignHatch(y0, h, color, pageMeta=null){
         const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
         r.setAttribute('x', colX); r.setAttribute('y', y0); r.setAttribute('width', colW); r.setAttribute('height', h);
         r.setAttribute('fill', `url(#${color==='#f59e0b'?'hatch-orange':'hatch-red'})`); r.setAttribute('opacity','0.6'); r.setAttribute('class','foreign-hatch');
+        if(pageMeta) attachPageMeta(r, pageMeta);
         svg.appendChild(r);
+        return r;
       }
 
       // Annotation layers
       const braceLayer = document.createElementNS('http://www.w3.org/2000/svg','g'); braceLayer.setAttribute('id','brace-layer'); svg.appendChild(braceLayer);
       const connectorLayer = document.createElementNS('http://www.w3.org/2000/svg','g'); connectorLayer.setAttribute('id','connector-layer'); svg.appendChild(connectorLayer);
       const labelTopLayer = document.createElementNS('http://www.w3.org/2000/svg','g'); labelTopLayer.setAttribute('id','label-top-layer'); svg.appendChild(labelTopLayer);
+
+      function appendWrappedSvgText(textNode, value, maxWidth, lineHeight){
+        const x = Number(textNode.getAttribute('x')) || 0;
+        const y = Number(textNode.getAttribute('y')) || 0;
+        const words = String(value).replace(/\s*—\s*/g, ' ').split(/\s+/).filter(Boolean);
+        textNode.textContent = '';
+        const lines = [];
+        let line = '';
+        words.forEach((word)=>{
+          const candidate = line ? `${line} ${word}` : word;
+          if(line && measureLabelWidth(candidate) > maxWidth){
+            lines.push(line);
+            line = word;
+          } else {
+            line = candidate;
+          }
+        });
+        if(line) lines.push(line);
+        const finalLines = lines.slice(0, 2);
+        if(lines.length > 2) finalLines[1] = `${finalLines[1].replace(/\.+$/,'')}…`;
+        finalLines.forEach((ln, idx)=>{
+          const tspan = document.createElementNS('http://www.w3.org/2000/svg','tspan');
+          tspan.setAttribute('x', x);
+          tspan.setAttribute('dy', idx === 0 ? `${-(finalLines.length-1)*lineHeight/2}` : lineHeight);
+          tspan.textContent = ln;
+          if(measureLabelWidth(ln) > maxWidth){
+            tspan.setAttribute('textLength', maxWidth);
+            tspan.setAttribute('lengthAdjust','spacingAndGlyphs');
+          }
+          textNode.appendChild(tspan);
+        });
+        textNode.setAttribute('y', y);
+      }
 
       function drawBraceLabel(x0, yTop, yBot, stroke, textStr, labelX, alpha=1.0, connect=false, swatchSrc=null, labelOpts={}){
         const yMid=(yTop+yBot)/2; const h=yTop-yBot; const bulge=12; const s1=Math.min(40,h*0.25); const s2=Math.min(28,h*0.18);
@@ -689,12 +1137,14 @@
           `C ${x0+dir*bulge*0.6} ${yMid+s2}, ${x0} ${yBot-s1}, ${x0} ${yBot}`
         ].join(' ');
         const g=document.createElementNS('http://www.w3.org/2000/svg','g'); g.setAttribute('opacity',alpha.toFixed(3)); if(labelOpts.name){ g.setAttribute('data-name', labelOpts.name); g.setAttribute('data-start', labelOpts.rangeStart); g.setAttribute('data-end', labelOpts.rangeEnd); g.setAttribute('data-scope','label'); }
+        if(labelOpts.pageMeta) attachPageMeta(g, labelOpts.pageMeta);
         const path=document.createElementNS('http://www.w3.org/2000/svg','path'); path.setAttribute('d',dPath); path.setAttribute('class','brace'); path.setAttribute('stroke',stroke); g.appendChild(path);
         const cap=8; const top=document.createElementNS('http://www.w3.org/2000/svg','line'); top.setAttribute('x1',x0-cap); top.setAttribute('x2',x0+cap); top.setAttribute('y1',yTop); top.setAttribute('y2',yTop); top.setAttribute('class','tickcap'); top.setAttribute('stroke',stroke); g.appendChild(top);
         const bot=document.createElementNS('http://www.w3.org/2000/svg','line'); bot.setAttribute('x1',x0-cap); bot.setAttribute('x2',x0+cap); bot.setAttribute('y1',yBot); bot.setAttribute('y2',yBot); bot.setAttribute('class','tickcap'); bot.setAttribute('stroke',stroke); g.appendChild(bot);
         const nub=document.createElementNS('http://www.w3.org/2000/svg','line');
         nub.setAttribute('x1',x0+dir*bulge); nub.setAttribute('x2',labelX); nub.setAttribute('y1',yMid); nub.setAttribute('y2',yMid); nub.setAttribute('class','tickcap'); nub.setAttribute('stroke',stroke);
         if(labelOpts.name){ nub.setAttribute('data-name', labelOpts.name); nub.setAttribute('data-start', labelOpts.rangeStart); nub.setAttribute('data-end', labelOpts.rangeEnd); nub.setAttribute('data-scope','label'); }
+        if(labelOpts.pageMeta) attachPageMeta(nub, labelOpts.pageMeta);
         if(connect){ connectorLayer.appendChild(nub); } else { g.appendChild(nub); }
         // swatch + text
         const text=document.createElementNS('http://www.w3.org/2000/svg','text');
@@ -702,16 +1152,23 @@
         const textStrLocalized = (lang==='fa') ? toFaDigits(textStr) : textStr;
         if(state.rtl){
           const swx = labelX - 10;
-          if(swatchSrc){ const sw=document.createElementNS('http://www.w3.org/2000/svg','image'); sw.setAttribute('x',swx); sw.setAttribute('y',yMid-6); sw.setAttribute('width',10); sw.setAttribute('height',12); sw.setAttribute('preserveAspectRatio','xMidYMid slice'); sw.setAttributeNS('http://www.w3.org/1999/xlink','href',swatchSrc); sw.setAttribute('href',swatchSrc); if(labelOpts.name){ sw.setAttribute('data-name', labelOpts.name); sw.setAttribute('data-scope','label'); } g.appendChild(sw);} else { const swr=document.createElementNS('http://www.w3.org/2000/svg','rect'); swr.setAttribute('x',swx); swr.setAttribute('y',yMid-6); swr.setAttribute('width',10); swr.setAttribute('height',12); swr.setAttribute('fill',stroke); swr.setAttribute('class','swatch'); if(labelOpts.name){ swr.setAttribute('data-name', labelOpts.name); swr.setAttribute('data-scope','label'); } g.appendChild(swr);} 
+          if(swatchSrc){ const sw=document.createElementNS('http://www.w3.org/2000/svg','image'); sw.setAttribute('x',swx); sw.setAttribute('y',yMid-6); sw.setAttribute('width',10); sw.setAttribute('height',12); sw.setAttribute('preserveAspectRatio','xMidYMid slice'); sw.setAttributeNS('http://www.w3.org/1999/xlink','href',swatchSrc); sw.setAttribute('href',swatchSrc); if(labelOpts.name){ sw.setAttribute('data-name', labelOpts.name); sw.setAttribute('data-scope','label'); } g.appendChild(sw);} else { const swr=document.createElementNS('http://www.w3.org/2000/svg','rect'); swr.setAttribute('x',swx); swr.setAttribute('y',yMid-6); swr.setAttribute('width',10); swr.setAttribute('height',12); swr.setAttribute('fill',stroke); swr.setAttribute('class','swatch'); if(labelOpts.name){ swr.setAttribute('data-name', labelOpts.name); swr.setAttribute('data-scope','label'); } g.appendChild(swr);}
           text.setAttribute('x', swx - 4);
           text.setAttribute('text-anchor','start');
           text.setAttribute('direction','rtl'); text.setAttribute('unicode-bidi','plaintext');
         } else {
-          if(swatchSrc){ const sw=document.createElementNS('http://www.w3.org/2000/svg','image'); sw.setAttribute('x',labelX); sw.setAttribute('y',yMid-6); sw.setAttribute('width',10); sw.setAttribute('height',12); sw.setAttribute('preserveAspectRatio','xMidYMid slice'); sw.setAttributeNS('http://www.w3.org/1999/xlink','href',swatchSrc); sw.setAttribute('href',swatchSrc); if(labelOpts.name){ sw.setAttribute('data-name', labelOpts.name); sw.setAttribute('data-scope','label'); } g.appendChild(sw);} else { const swr=document.createElementNS('http://www.w3.org/2000/svg','rect'); swr.setAttribute('x',labelX); swr.setAttribute('y',yMid-6); swr.setAttribute('width',10); swr.setAttribute('height',12); swr.setAttribute('fill',stroke); swr.setAttribute('class','swatch'); if(labelOpts.name){ swr.setAttribute('data-name', labelOpts.name); swr.setAttribute('data-scope','label'); } g.appendChild(swr);} 
+          if(swatchSrc){ const sw=document.createElementNS('http://www.w3.org/2000/svg','image'); sw.setAttribute('x',labelX); sw.setAttribute('y',yMid-6); sw.setAttribute('width',10); sw.setAttribute('height',12); sw.setAttribute('preserveAspectRatio','xMidYMid slice'); sw.setAttributeNS('http://www.w3.org/1999/xlink','href',swatchSrc); sw.setAttribute('href',swatchSrc); if(labelOpts.name){ sw.setAttribute('data-name', labelOpts.name); sw.setAttribute('data-scope','label'); } g.appendChild(sw);} else { const swr=document.createElementNS('http://www.w3.org/2000/svg','rect'); swr.setAttribute('x',labelX); swr.setAttribute('y',yMid-6); swr.setAttribute('width',10); swr.setAttribute('height',12); swr.setAttribute('fill',stroke); swr.setAttribute('class','swatch'); if(labelOpts.name){ swr.setAttribute('data-name', labelOpts.name); swr.setAttribute('data-scope','label'); } g.appendChild(swr);}
           text.setAttribute('x', labelX+16); text.setAttribute('text-anchor','start');
         }
         text.setAttribute('y', yMid); text.setAttribute('class','label'); if(labelOpts.labelFill){ text.setAttribute('fill', labelOpts.labelFill); } if(labelOpts.fontScale){ text.style.fontSize = (labelOpts.fontScale*1.0)+'em'; }
-        text.textContent=textStrLocalized; if(labelOpts.name){ text.setAttribute('data-name', labelOpts.name); text.setAttribute('data-start', labelOpts.rangeStart); text.setAttribute('data-end', labelOpts.rangeEnd); text.setAttribute('data-scope','label'); }
+        if(compact && labelPlacement==='side'){
+          const available = state.rtl ? Math.max(70, text.getAttribute('x') - viewX - 12) : Math.max(72, viewX + W - Number(text.getAttribute('x')) - 12);
+          appendWrappedSvgText(text, textStrLocalized, available, 10);
+        } else {
+          text.textContent=textStrLocalized;
+        }
+        if(labelOpts.name){ text.setAttribute('data-name', labelOpts.name); text.setAttribute('data-start', labelOpts.rangeStart); text.setAttribute('data-end', labelOpts.rangeEnd); text.setAttribute('data-scope','label'); }
+        if(labelOpts.pageMeta) attachPageMeta(text, labelOpts.pageMeta);
         // Hover focus from label only
         if(labelOpts.name){
           text.addEventListener('mouseenter', ()=>{ setHover({ name: labelOpts.name, start: labelOpts.rangeStart, end: labelOpts.rangeEnd }); });
@@ -723,16 +1180,28 @@
       function drawInsideLabel(d, yTop, yBot, stroke, textStr, alpha=1.0){
         const yMid=(yTop+yBot)/2;
         let cx = state.colX + state.colW/2;
+        let availableW = state.colW - 8;
         if(overlapMode==='split'){
           const span = (viewMax - viewMin);
           const yRel = (yMid - state.margin.top) / state.plotH;
           const yearAt = viewMin + (1 - yRel) * span;
           const active = (excludeElam ? entries.filter(e=>e.group!=='Elam') : entries).filter(e=>e.start<=yearAt && e.end>=yearAt);
-          if(active.length>1){ active.sort((A,B)=>anchorOf(A.name)-anchorOf(B.name)); const idx = active.findIndex(e=>e.name===d.name); if(idx>=0){ cx = state.colX + (idx+0.5)*(state.colW/active.length); } }
+          if(active.length>1){ active.sort((A,B)=>anchorOf(A.name)-anchorOf(B.name)); const idx = active.findIndex(e=>e.name===d.name); availableW = Math.max(18, state.colW/active.length - 6); if(idx>=0){ cx = state.colX + (idx+0.5)*(state.colW/active.length); } }
         }
+        if(compact && availableW < 30) return;
         const g=document.createElementNS('http://www.w3.org/2000/svg','g'); g.setAttribute('opacity',alpha.toFixed(3));
         const text=document.createElementNS('http://www.w3.org/2000/svg','text'); text.setAttribute('x', cx); text.setAttribute('y', yMid); text.setAttribute('class','label'); text.setAttribute('text-anchor','middle'); text.setAttribute('data-name', d.name); text.setAttribute('data-start', d.start); text.setAttribute('data-end', d.end); text.setAttribute('data-scope','label'); if(state.rtl){ text.setAttribute('direction','rtl'); text.setAttribute('unicode-bidi','plaintext'); }
-        text.textContent=(lang==='fa'?toFaDigits(textStr):textStr); 
+        attachPageMeta(g, { kind:'dynasty', name: dynastyName(d), idName: d.name, start: d.start, end: d.end });
+        attachPageMeta(text, { kind:'dynasty', name: dynastyName(d), idName: d.name, start: d.start, end: d.end });
+        const localizedText = (lang==='fa'?toFaDigits(textStr):textStr);
+        text.textContent=localizedText;
+        if(compact){
+          const textW = measureLabelWidth(localizedText);
+          if(textW > availableW){
+            text.setAttribute('textLength', availableW);
+            text.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+          }
+        }
         text.addEventListener('mouseenter', ()=>{ setHover({ name: d.name, start: d.start, end: d.end }); });
         text.addEventListener('mouseleave', ()=>{ clearHover(); });
         g.appendChild(text);
@@ -744,6 +1213,16 @@
       const alphaForSmall = (z)=> 0.12 + (1 - z) * 0.88;
       const alphaForMetaMembers = (z)=> 0.08 + (1 - z) * 0.92;
       const alphaForModes = (z)=> 0.12 + (1 - z) * 0.88;
+      function dynastyLabelText(d, pct){
+        const nm = dynastyName(d);
+        if(compact && labelPlacement==='side' && zoomFrac > 0.28){
+          return nm;
+        }
+        if(compact && labelPlacement==='inside'){
+          return zoomFrac > 0.18 ? nm : `${nm} — ${toLabelLocal(d.start)} ${t('to')} ${toLabelLocal(d.end)}`;
+        }
+        return `${nm} — ${toLabelLocal(d.start)} ${t('to')} ${toLabelLocal(d.end)} — ${fmtPct(pct)}`;
+      }
 
       // Build label items
       const items = [];
@@ -759,14 +1238,39 @@
         const metaActive = !!meta && zoomFrac>0.95;
         let alpha = 1.0; if(metaActive) alpha = alphaForMetaMembers(zoomFrac); else if(small) alpha = alphaForSmall(zoomFrac);
         if(showGolden||showDark||showReligion||showForeign) alpha *= alphaForModes(zoomFrac);
-        const nm = dynastyName(d);
-        const labelText = `${nm} — ${toLabelLocal(d.start)} ${t('to')} ${toLabelLocal(d.end)} — ${fmtPct(pct)}`;
-        items.push({ d,yTop,yBot,stroke: d.hex, swatchSrc: getFlagUrl(d.name) || null, labelText, alpha });
+        const visualH = yTop - yBot;
+        if(compact && labelPlacement==='inside' && zoomFrac > 0.42 && visualH < 18 && !isIRI){
+          alpha = Math.min(alpha, visualH < 10 ? 0.02 : 0.10);
+        }
+        const labelText = dynastyLabelText(d, pct);
+        const useFlagSwatch = !(compact && labelPlacement==='side' && zoomFrac > 0.34);
+        items.push({ d,yTop,yBot,stroke: d.hex, swatchSrc: useFlagSwatch ? (getFlagUrl(d.name) || null) : null, labelText, alpha });
       });
 
-      // Sequencing at full zoom-out
       const fullyOut = zoomFrac > 0.95; const sequencedSet = new Set();
-      if(labelPlacement==='side' && fullyOut){
+      const compactOverviewSet = new Set();
+      if(compact && labelPlacement==='side' && zoomFrac > 0.9){
+        const reserved = [];
+        items
+          .filter(it=>{
+            const visualH = it.yTop - it.yBot;
+            return visualH >= 14 || it.d.name === 'Islamic Republic of Iran';
+          })
+          .sort((a,b)=>{
+            const score = (it)=> (it.d.name === 'Islamic Republic of Iran' ? 1000 : 0) + (it.yTop - it.yBot);
+            return score(b) - score(a);
+          })
+          .forEach(it=>{
+            const mid = (it.yTop + it.yBot) / 2;
+            if(reserved.every(y=>Math.abs(y-mid) >= 22)){
+              reserved.push(mid);
+              compactOverviewSet.add(it);
+            }
+          });
+      }
+
+      // Sequencing at full zoom-out
+      if(labelPlacement==='side' && fullyOut && !compact){
         const threshold = 8; // px
         const cands = items.filter(it=>it.alpha>=0.999);
         cands.sort((a,b)=> ((a.yTop+a.yBot)/2 - (b.yTop+b.yBot)/2) || (a.d.start - b.d.start));
@@ -784,7 +1288,7 @@
           group.sort((a,b)=>a.d.start-b.d.start);
           let cursorX = baseLabelX2;
           group.forEach(it=>{
-            drawBraceLabel(braceX2,it.yTop,it.yBot,it.stroke,it.labelText,cursorX,it.alpha,true,it.swatchSrc,{name: it.d.name, rangeStart: it.d.start, rangeEnd: it.d.end});
+            drawBraceLabel(braceX2,it.yTop,it.yBot,it.stroke,it.labelText,cursorX,it.alpha,true,it.swatchSrc,{name: it.d.name, rangeStart: it.d.start, rangeEnd: it.d.end, pageMeta:{kind:'dynasty', name:dynastyName(it.d), idName:it.d.name, start:it.d.start, end:it.d.end}});
             const textW = measureLabelWidth(lang==='fa'?toFaDigits(it.labelText):it.labelText); const blockW = 16 + textW; const pad = 24; cursorX += state.rtl ? -(blockW + pad) : (blockW + pad); sequencedSet.add(it);
           });
         });
@@ -794,11 +1298,12 @@
       if(labelPlacement==='side'){
         items.forEach(it=>{
           if(sequencedSet.has(it)) return;
+          if(compact && zoomFrac > 0.9 && !compactOverviewSet.has(it)) return;
           const labelX = baseLabelX2;
-          drawBraceLabel(braceX2,it.yTop,it.yBot,it.stroke,it.labelText,labelX,it.alpha,false,it.swatchSrc,{name: it.d.name, rangeStart: it.d.start, rangeEnd: it.d.end});
+          drawBraceLabel(braceX2,it.yTop,it.yBot,it.stroke,it.labelText,labelX,it.alpha,false,it.swatchSrc,{name: it.d.name, rangeStart: it.d.start, rangeEnd: it.d.end, pageMeta:{kind:'dynasty', name:dynastyName(it.d), idName:it.d.name, start:it.d.start, end:it.d.end}});
         });
       } else {
-        items.forEach(it=>{ drawInsideLabel(it.d, it.yTop, it.yBot, it.stroke, it.labelText, it.alpha); });
+        items.forEach(it=>{ if(it.alpha > 0.04) drawInsideLabel(it.d, it.yTop, it.yBot, it.stroke, it.labelText, it.alpha); });
       }
 
       // === Overlay labels === keep text fixed using RAW span years + percent of active
@@ -812,17 +1317,21 @@
       if(showGolden){
         for(const s of segsInView(GOLDEN_SPANS)){
           const y0 = yearToY(s.end), y1 = yearToY(s.start), h = y1 - y0;
-          drawOverlayRect(colX,y0,colW,h,GOLD_COLOR,0.7);
+          const periodName = (lang==='fa' ? 'دوران طلایی' : 'Golden Age') + (s.raw.tag ? `: ${s.raw.tag}` : '');
+          const pageMeta = {kind:'period', name:periodName, idName:`Golden Age ${s.raw.tag || ''}`, start:s.raw.start, end:s.raw.end};
+          drawOverlayRect(colX,y0,colW,h,GOLD_COLOR,0.7,'period-hit',pageMeta);
           const lab = labelTextRange('دوران طلایی','Golden Age',s);
-          drawBraceLabel(braceX2,yearToY(s.start),yearToY(s.end),'#D4AF37',lab,baseLabelX2,1.0,false,null,{labelFill:'#D4AF37',fontScale:1.15});
+          drawBraceLabel(braceX2,yearToY(s.start),yearToY(s.end),'#D4AF37',lab,baseLabelX2,1.0,false,null,{labelFill:'#D4AF37',fontScale:1.15,pageMeta});
         }
       }
       if(showDark){
         for(const s of segsInView(DARK_SPANS)){
           const y0 = yearToY(s.end), y1 = yearToY(s.start), h = y1 - y0;
-          drawOverlayRect(colX,y0,colW,h,DARK_COLOR,0.7);
+          const periodName = (lang==='fa' ? 'دوران سیاه' : 'Dark Age') + (s.raw.tag ? `: ${s.raw.tag}` : '');
+          const pageMeta = {kind:'period', name:periodName, idName:`Dark Age ${s.raw.tag || ''}`, start:s.raw.start, end:s.raw.end};
+          drawOverlayRect(colX,y0,colW,h,DARK_COLOR,0.7,'period-hit',pageMeta);
           const lab = labelTextRange('دوران سیاه','Dark Age',s);
-          drawBraceLabel(braceX2,yearToY(s.start),yearToY(s.end),'#9aa0a6',lab,baseLabelX2,1.0,false,null,{labelFill:'#9aa0a6',fontScale:1.15});
+          drawBraceLabel(braceX2,yearToY(s.start),yearToY(s.end),'#9aa0a6',lab,baseLabelX2,1.0,false,null,{labelFill:'#9aa0a6',fontScale:1.15,pageMeta});
         }
       }
 
@@ -836,26 +1345,31 @@
         ];
         for(const s of segsInView(relSpans)){
           const y0=yearToY(s.end), y1=yearToY(s.start), h=y1-y0;
-          drawOverlayRect(colX,y0,colW,h,s.raw.color,0.22);
+          const periodName = lang==='fa' ? s.raw.labelFa : s.raw.label;
+          const pageMeta = {kind:'period', name:periodName, idName:s.raw.label, start:s.raw.start, end:s.raw.end};
+          drawOverlayRect(colX,y0,colW,h,s.raw.color,0.22,'period-hit',pageMeta);
           const label = (lang==='fa' ? s.raw.labelFa : s.raw.label) + ' — ' + toLabelLocal(s.raw.start) + ' ' + t('to') + ' ' + toLabelLocal(s.raw.end) + ' — ' + fmtPct((s.raw.end-s.raw.start)/activeSpan*100);
-          drawBraceLabel(braceX2,yearToY(s.start),yearToY(s.end),s.raw.color,label,baseLabelX2,1.0,false,null,{labelFill:s.raw.color,fontScale:1.12});
+          drawBraceLabel(braceX2,yearToY(s.start),yearToY(s.end),s.raw.color,label,baseLabelX2,1.0,false,null,{labelFill:s.raw.color,fontScale:1.12,pageMeta});
         }
       }
 
       if(showForeign){
         for(const s of segsInView(FOREIGN_GROUPS)){
           const y0=yearToY(s.end), y1=yearToY(s.start), h=y1-y0;
-          drawForeignHatch(y0,h, s.raw.color);
           const baseText = (lang==='fa'? translateForeign(s.raw.label): s.raw.label);
+          const pageMeta = {kind:'period', name:baseText, idName:s.raw.label, start:s.raw.start, end:s.raw.end};
+          drawForeignHatch(y0,h, s.raw.color, pageMeta);
           const label = baseText + ' — ' + toLabelLocal(s.raw.start) + ' ' + t('to') + ' ' + toLabelLocal(s.raw.end) + ' — ' + fmtPct((s.raw.end-s.raw.start)/activeSpan*100);
-          drawBraceLabel(braceX2,yearToY(s.start),yearToY(s.end),s.raw.color,label,baseLabelX2,1.0,false,null,{labelFill:s.raw.color,fontScale:1.15});
+          drawBraceLabel(braceX2,yearToY(s.start),yearToY(s.end),s.raw.color,label,baseLabelX2,1.0,false,null,{labelFill:s.raw.color,fontScale:1.15,pageMeta});
         }
       }
 
-      // Footer note
-      const note=document.createElementNS('http://www.w3.org/2000/svg','text');
-      const footX = state.rtl ? (svg.viewBox.baseVal.width - state.margin.right) : state.margin.left;
-      note.setAttribute('x',footX); note.setAttribute('y',svg.viewBox.baseVal.height-8); note.setAttribute('class','note'); note.textContent=t('footer'); svg.appendChild(note);
+      // Footer note stays out of the compact mobile canvas; Help carries this guidance there.
+      if(!compact){
+        const note=document.createElementNS('http://www.w3.org/2000/svg','text');
+        const footX = state.rtl ? (svg.viewBox.baseVal.width - state.margin.right) : state.margin.left;
+        note.setAttribute('x',footX); note.setAttribute('y',svg.viewBox.baseVal.height-8); note.setAttribute('class','note'); note.textContent=t('footer'); svg.appendChild(note);
+      }
 
       // === Facts ===
       const totalSpan = activeMax - activeMin;
@@ -895,6 +1409,70 @@
     // =====================
     // Controls wiring
     // =====================
+    function updateHelpContent(){
+      if(!elHelpList) return;
+      const items = isCompactLayout() || isTabletLayout() ? t('helpTouch') : t('helpDesktop');
+      elHelpList.innerHTML = '';
+      items.forEach((item)=>{
+        const li = document.createElement('li');
+        li.textContent = item;
+        elHelpList.appendChild(li);
+      });
+    }
+    function updatePanelA11y(){
+      const compact = isCompactLayout();
+      const open = compact ? mobileSheetOpen : !panelCollapsed;
+      elPanel.classList.toggle('sheet-open', compact && mobileSheetOpen);
+      elPanel.classList.toggle('collapsed', compact ? !mobileSheetOpen : panelCollapsed);
+      elPanel.setAttribute('aria-hidden', String(!open && compact));
+      if(compact && !open) elPanel.setAttribute('inert', '');
+      else elPanel.removeAttribute('inert');
+      if(elPanelTab) elPanelTab.setAttribute('aria-expanded', String(open));
+      if(btnMobileOptions) btnMobileOptions.setAttribute('aria-expanded', String(open));
+    }
+    function openHelp(){
+      updateHelpContent();
+      elHelpOverlay.hidden = false;
+      btnHelpClose.focus();
+    }
+    function closeHelp(){
+      elHelpOverlay.hidden = true;
+    }
+    function setMobileSheet(open){
+      mobileSheetOpen = open;
+      updatePanelA11y();
+    }
+    function applyTheme(){
+      document.documentElement.dataset.theme = theme;
+      const isLight = theme === 'light';
+      [btnTheme, btnMobileTheme].forEach(btn=>{
+        if(!btn) return;
+        btn.textContent = isLight ? t('themeDark') : t('themeLight');
+        btn.setAttribute('aria-pressed', String(isLight));
+      });
+      try { localStorage.setItem('iranHistoryTheme', theme); } catch(_) {}
+    }
+    function toggleTheme(){
+      theme = theme === 'dark' ? 'light' : 'dark';
+      applyTheme();
+      scheduleRender();
+    }
+    function detailLabel(kind){
+      return kind === 'dynasty' ? t('pageKindDynasty') : t('pageKindPeriod');
+    }
+    function openDetailPage(meta){
+      if(!meta || !meta.name) return;
+      elDetailTitle.textContent = meta.name;
+      elDetailKind.dataset.kind = meta.kind || 'period';
+      elDetailKind.textContent = detailLabel(meta.kind || 'period');
+      elDetailBody.textContent = t('pageEmpty');
+      elDetailOverlay.hidden = false;
+      btnDetailClose.focus();
+    }
+    function closeDetailPage(){
+      elDetailOverlay.hidden = true;
+    }
+
     function refreshUIStrings(){
       elTitle.textContent = t('title');
       elPanelTitle.textContent = t('optionsTitle');
@@ -910,30 +1488,45 @@
       document.getElementById('width-label').textContent = t('widthLabel');
       const wDisp = Math.round(colWidthFrac*100);
       elWidthValue.textContent = (lang==='fa'? toFaDigits(wDisp) : wDisp) + '%';
+      elWidthSlider.setAttribute('aria-valuetext', elWidthValue.textContent);
+      [btnReset, btnMobileReset].forEach(btn=>{ if(btn) btn.textContent = t('reset'); });
+      [btnHelp, btnMobileHelp].forEach(btn=>{ if(btn) btn.textContent = t('help'); });
+      if(btnMobileOptions) btnMobileOptions.textContent = t('optionsShort');
+      if(btnPanelClose) btnPanelClose.textContent = t('close');
+      if(btnHelpClose) btnHelpClose.textContent = t('close');
+      if(btnDetailClose) btnDetailClose.textContent = t('close');
+      if(elHelpTitle) elHelpTitle.textContent = t('helpTitle');
+      if(!elDetailOverlay.hidden) {
+        elDetailKind.textContent = detailLabel(elDetailKind.dataset.kind || 'period');
+        elDetailBody.textContent = t('pageEmpty');
+      }
+      updateHelpContent();
+      updatePanelA11y();
+      applyTheme();
       // Panel lip chevron
       elPanelTab.querySelector('span').textContent = panelCollapsed ? (document.documentElement.dir==='rtl' ? '▶' : '▶') : (document.documentElement.dir==='rtl' ? '◀' : '◀');
       document.title = t('title');
     }
 
-    btnOverlap.addEventListener('click', ()=>{ overlapMode = (overlapMode==='split') ? 'blend' : 'split'; const on = (overlapMode==='split'); btnOverlap.classList.toggle('on', on); btnOverlap.setAttribute('aria-pressed', String(on)); refreshUIStrings(); render(); });
-    btnFlags.addEventListener('click', ()=>{ flagsEnabled = !flagsEnabled; btnFlags.classList.toggle('on', flagsEnabled); btnFlags.setAttribute('aria-pressed', String(flagsEnabled)); refreshUIStrings(); render(); });
-    btnLabelPos.addEventListener('click', ()=>{ labelPlacement = (labelPlacement==='side') ? 'inside' : 'side'; const on = (labelPlacement==='inside'); btnLabelPos.classList.toggle('on', on); btnLabelPos.setAttribute('aria-pressed', String(on)); refreshUIStrings(); render(); });
-    btnExcludeElam.addEventListener('click', ()=>{ excludeElam = !excludeElam; btnExcludeElam.classList.toggle('on', excludeElam); btnExcludeElam.setAttribute('aria-pressed', String(excludeElam)); viewMin = null; viewMax = null; refreshUIStrings(); render(); });
+    btnOverlap.addEventListener('click', ()=>{ overlapMode = (overlapMode==='split') ? 'blend' : 'split'; const on = (overlapMode==='split'); btnOverlap.classList.toggle('on', on); btnOverlap.setAttribute('aria-pressed', String(on)); refreshUIStrings(); scheduleRender(); });
+    btnFlags.addEventListener('click', ()=>{ flagsEnabled = !flagsEnabled; btnFlags.classList.toggle('on', flagsEnabled); btnFlags.setAttribute('aria-pressed', String(flagsEnabled)); refreshUIStrings(); scheduleRender(); });
+    btnLabelPos.addEventListener('click', ()=>{ labelPlacement = (labelPlacement==='side') ? 'inside' : 'side'; const on = (labelPlacement==='inside'); btnLabelPos.classList.toggle('on', on); btnLabelPos.setAttribute('aria-pressed', String(on)); labelWidthCache.clear(); refreshUIStrings(); scheduleRender(); });
+    btnExcludeElam.addEventListener('click', ()=>{ excludeElam = !excludeElam; btnExcludeElam.classList.toggle('on', excludeElam); btnExcludeElam.setAttribute('aria-pressed', String(excludeElam)); resetView(); refreshUIStrings(); scheduleRender(); });
     btnLang.addEventListener('click', ()=>{
       lang = (lang==='en') ? 'fa' : 'en';
       document.documentElement.lang = (lang==='fa') ? 'fa' : 'en';
       document.documentElement.dir = (lang==='fa') ? 'rtl' : 'ltr';
-      refreshUIStrings(); render();
+      labelWidthCache.clear();
+      refreshUIStrings(); scheduleRender();
     });
-    btnGolden.addEventListener('click', ()=>{ showGolden = !showGolden; btnGolden.classList.toggle('on', showGolden); btnGolden.setAttribute('aria-pressed', String(showGolden)); refreshUIStrings(); render(); });
-    btnDark.addEventListener('click', ()=>{ showDark = !showDark; btnDark.classList.toggle('on', showDark); btnDark.setAttribute('aria-pressed', String(showDark)); refreshUIStrings(); render(); });
-    btnReligion.addEventListener('click', ()=>{ showReligion = !showReligion; btnReligion.classList.toggle('on', showReligion); btnReligion.setAttribute('aria-pressed', String(showReligion)); refreshUIStrings(); render(); });
-    btnForeignRule.addEventListener('click', ()=>{ showForeign = !showForeign; btnForeignRule.classList.toggle('on', showForeign); btnForeignRule.setAttribute('aria-pressed', String(showForeign)); refreshUIStrings(); render(); });
+    btnGolden.addEventListener('click', ()=>{ showGolden = !showGolden; btnGolden.classList.toggle('on', showGolden); btnGolden.setAttribute('aria-pressed', String(showGolden)); refreshUIStrings(); scheduleRender(); });
+    btnDark.addEventListener('click', ()=>{ showDark = !showDark; btnDark.classList.toggle('on', showDark); btnDark.setAttribute('aria-pressed', String(showDark)); refreshUIStrings(); scheduleRender(); });
+    btnReligion.addEventListener('click', ()=>{ showReligion = !showReligion; btnReligion.classList.toggle('on', showReligion); btnReligion.setAttribute('aria-pressed', String(showReligion)); refreshUIStrings(); scheduleRender(); });
+    btnForeignRule.addEventListener('click', ()=>{ showForeign = !showForeign; btnForeignRule.classList.toggle('on', showForeign); btnForeignRule.setAttribute('aria-pressed', String(showForeign)); refreshUIStrings(); scheduleRender(); });
 
     // Panel lip toggle
     elPanelTab.addEventListener('click', ()=>{
       panelCollapsed = !panelCollapsed;
-      elPanel.classList.toggle('collapsed', panelCollapsed);
       refreshUIStrings();
     });
 
@@ -942,37 +1535,226 @@
       const pct = Number(e.target.value);
       colWidthFrac = pct / 100;
       refreshUIStrings();
-      render();
+      scheduleRender();
+    });
+
+    [btnReset, btnMobileReset].forEach(btn=>btn && btn.addEventListener('click', ()=>{
+      resetView();
+      if(isCompactLayout()) setMobileSheet(false);
+      refreshUIStrings();
+      scheduleRender();
+    }));
+    [btnHelp, btnMobileHelp].forEach(btn=>btn && btn.addEventListener('click', openHelp));
+    [btnTheme, btnMobileTheme].forEach(btn=>btn && btn.addEventListener('click', toggleTheme));
+    btnHelpClose.addEventListener('click', closeHelp);
+    elHelpOverlay.addEventListener('click', (e)=>{ if(e.target===elHelpOverlay) closeHelp(); });
+    btnDetailClose.addEventListener('click', closeDetailPage);
+    elDetailOverlay.addEventListener('click', (e)=>{ if(e.target===elDetailOverlay) closeDetailPage(); });
+    btnMobileOptions.addEventListener('click', ()=>{ setMobileSheet(!mobileSheetOpen); });
+    btnPanelClose.addEventListener('click', ()=>{ setMobileSheet(false); });
+
+    [elPanel, elTopActions, elHelpOverlay, elDetailOverlay, document.getElementById('mobile-controlbar')].forEach((el)=>{
+      if(!el) return;
+      ['pointerdown','pointermove','wheel','touchstart'].forEach((eventName)=>{
+        el.addEventListener(eventName, (e)=>e.stopPropagation(), { passive: eventName==='wheel' ? false : true });
+      });
+    });
+    document.addEventListener('keydown', (e)=>{
+      if(e.key==='Escape'){
+        if(!elDetailOverlay.hidden){ closeDetailPage(); return; }
+        if(!elHelpOverlay.hidden){ closeHelp(); return; }
+        if(isCompactLayout() && mobileSheetOpen) setMobileSheet(false);
+      }
     });
 
     // =====================
     // Interaction: zoom & pan (inverted)
     // =====================
     function clamp(v,a,b){ return Math.min(b, Math.max(a,v)); }
-    function zoomAt(pivotY, delta){
-      const data = excludeElam ? entries.filter(e=>e.group!=='Elam') : entries.slice();
-      const min = Math.min(...data.map(d => Math.min(d.start, d.end)));
-      const max = Math.max(...data.map(d => Math.max(d.start, d.end)));
-      const span = viewMax - viewMin;
-      const pivotRatio = (pivotY - state.margin.top) / state.plotH;
-      const pivotYear = viewMax - pivotRatio*span;
-      const zoom = Math.exp(delta*0.0012);
-      let newSpan = clamp(span*zoom, (max-min)*0.02, (max-min));
+    function svgPointFromClient(clientX, clientY){
+      const rect = svg.getBoundingClientRect();
+      const vb = svg.viewBox.baseVal;
+      const w = vb && vb.width ? vb.width : rect.width;
+      const h = vb && vb.height ? vb.height : rect.height;
+      return {
+        x: viewX + ((clientX - rect.left) / Math.max(1, rect.width)) * w,
+        y: ((clientY - rect.top) / Math.max(1, rect.height)) * h
+      };
+    }
+    function pivotRatioFromSvgY(svgY){
+      if(!state) return 0.5;
+      return clamp((svgY - state.margin.top) / state.plotH, 0, 1);
+    }
+    function yearAtSvgY(svgY, min=viewMin, max=viewMax){
+      const ratio = pivotRatioFromSvgY(svgY);
+      return max - ratio * (max - min);
+    }
+    function setSpanAroundYear(svgY, newSpan, pivotYear){
+      const bounds = getActiveBounds();
+      const fullSpan = bounds.max - bounds.min;
+      const pivotRatio = pivotRatioFromSvgY(svgY);
+      newSpan = clamp(newSpan, fullSpan * MIN_ZOOM_FRAC, fullSpan);
       let newMin = pivotYear - (1-pivotRatio)*newSpan;
       let newMax = pivotYear + pivotRatio*newSpan;
-      newMin = clamp(newMin, min, max-0.001);
-      newMax = clamp(newMax, newMin+0.001, max);
+      if(newMin < bounds.min){ newMin = bounds.min; newMax = newMin + newSpan; }
+      if(newMax > bounds.max){ newMax = bounds.max; newMin = newMax - newSpan; }
       viewMin = newMin; viewMax = newMax;
+      clampViewRange();
+    }
+    function setViewXForPinnedPoint(clientX, pinnedSvgX){
+      const rect = svg.getBoundingClientRect();
+      const width = (svg.viewBox.baseVal && svg.viewBox.baseVal.width) || rect.width || 1;
+      const ratio = clamp((clientX - rect.left) / Math.max(1, rect.width), 0, 1);
+      viewX = pinnedSvgX - ratio * width;
+      clampViewX();
+    }
+    function zoomAt(pivotY, delta){
+      const bounds = getActiveBounds();
+      const min = bounds.min;
+      const max = bounds.max;
+      const span = viewMax - viewMin;
+      const pivotYear = yearAtSvgY(pivotY);
+      const zoom = Math.exp(delta*0.0010);
+      setSpanAroundYear(pivotY, clamp(span*zoom, (max-min)*MIN_ZOOM_FRAC, (max-min)), pivotYear);
     }
 
-    let dragStart=null;
-    svg.addEventListener('wheel', (e)=>{ e.preventDefault(); const rect=svg.getBoundingClientRect(); const y=e.clientY-rect.top; zoomAt(y, e.deltaY); render(); }, {passive:false});
-    svg.addEventListener('mousedown', (e)=>{ dragStart={y:e.clientY, vmin:viewMin, vmax:viewMax}; svg.classList.add('dragging'); });
-    window.addEventListener('mouseup', ()=>{ dragStart=null; svg.classList.remove('dragging'); });
-    window.addEventListener('mousemove', (e)=>{
-      if(!dragStart) return; const dy=e.clientY-dragStart.y; const yearsPerPx=(viewMax-viewMin)/state.plotH; viewMin=dragStart.vmin + dy*yearsPerPx; viewMax=dragStart.vmax + dy*yearsPerPx; render();
+    const activePointers = new Map();
+    let panStart = null;
+    let pinchStart = null;
+    let longPressTimer = null;
+    let longPressTarget = null;
+    let longPressOrigin = null;
+    function pointerList(){ return Array.from(activePointers.values()); }
+    function pointerDistance(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
+    function pointerCenter(a,b){ return { x:(a.x+b.x)/2, y:(a.y+b.y)/2 }; }
+    function beginPan(p){
+      panStart = { x:p.x, y:p.y, vmin:viewMin, vmax:viewMax, vx:viewX };
+      pinchStart = null;
+    }
+    function beginPinch(){
+      const pts = pointerList();
+      if(pts.length < 2 || !state) return;
+      const a = pts[0], b = pts[1];
+      const center = pointerCenter(a,b);
+      const svgPt = svgPointFromClient(center.x, center.y);
+      pinchStart = {
+        distance: Math.max(1, pointerDistance(a,b)),
+        span: viewMax - viewMin,
+        center,
+        pivotYear: yearAtSvgY(svgPt.y),
+        pinnedSvgX: svgPt.x
+      };
+      panStart = null;
+    }
+    function updatePan(p){
+      if(!panStart || !state) return;
+      const rect = svg.getBoundingClientRect();
+      const vb = svg.viewBox.baseVal;
+      const scaleX = (vb && vb.width ? vb.width : rect.width) / Math.max(1, rect.width);
+      const scaleY = (vb && vb.height ? vb.height : rect.height) / Math.max(1, rect.height);
+      const dx = (p.x - panStart.x) * scaleX;
+      const dy = (p.y - panStart.y) * scaleY;
+      const yearsPerPx = (panStart.vmax - panStart.vmin) / state.plotH;
+      viewMin = panStart.vmin + dy * yearsPerPx;
+      viewMax = panStart.vmax + dy * yearsPerPx;
+      viewX = panStart.vx - dx;
+      clampViewRange();
+      clampViewX();
+      scheduleRender();
+    }
+    function updatePinch(){
+      const pts = pointerList();
+      if(pts.length < 2 || !pinchStart || !state) return;
+      const a = pts[0], b = pts[1];
+      const center = pointerCenter(a,b);
+      const scale = pointerDistance(a,b) / pinchStart.distance;
+      const svgCenter = svgPointFromClient(center.x, center.y);
+      const nextSpan = pinchStart.span / clamp(scale, 0.25, 4);
+      setSpanAroundYear(svgCenter.y, nextSpan, pinchStart.pivotYear);
+      setViewXForPinnedPoint(center.x, pinchStart.pinnedSvgX);
+      scheduleRender();
+    }
+    function clearLongPress(){
+      if(longPressTimer) clearTimeout(longPressTimer);
+      longPressTimer = null;
+      longPressTarget = null;
+      longPressOrigin = null;
+    }
+    svg.addEventListener('wheel', (e)=>{
+      e.preventDefault();
+      const point = svgPointFromClient(e.clientX, e.clientY);
+      const modeScale = e.deltaMode === 1 ? 16 : (e.deltaMode === 2 ? 240 : 1);
+      const delta = clamp(e.deltaY * modeScale, -180, 180);
+      zoomAt(point.y, delta);
+      scheduleRender();
+    }, {passive:false});
+    svg.addEventListener('pointerdown', (e)=>{
+      if(e.button != null && e.button !== 0) return;
+      e.preventDefault();
+      svg.setPointerCapture?.(e.pointerId);
+      activePointers.set(e.pointerId, { x:e.clientX, y:e.clientY, type:e.pointerType });
+      activePointerCount = activePointers.size;
+      svg.classList.add('dragging');
+      if((e.pointerType==='touch' || e.pointerType==='pen') && activePointers.size === 1){
+        const meta = metaFromTarget(e.target);
+        if(meta){
+          longPressTarget = meta;
+          longPressOrigin = { x:e.clientX, y:e.clientY };
+          longPressTimer = setTimeout(()=>{
+            openDetailPage(longPressTarget);
+            clearLongPress();
+          }, 620);
+        }
+      } else {
+        clearLongPress();
+      }
+      if(activePointers.size === 1) beginPan(pointerList()[0]);
+      if(activePointers.size === 2) beginPinch();
     });
-    svg.addEventListener('dblclick', ()=>{ viewMin=null; viewMax=null; render(); });
+    svg.addEventListener('pointermove', (e)=>{
+      if(!activePointers.has(e.pointerId)) return;
+      e.preventDefault();
+      activePointers.set(e.pointerId, { x:e.clientX, y:e.clientY, type:e.pointerType });
+      activePointerCount = activePointers.size;
+      if(longPressOrigin && Math.hypot(e.clientX-longPressOrigin.x, e.clientY-longPressOrigin.y) > 10) clearLongPress();
+      if(activePointers.size === 1) updatePan(pointerList()[0]);
+      else if(activePointers.size >= 2) updatePinch();
+    });
+    function endPointer(e){
+      clearLongPress();
+      if(activePointers.has(e.pointerId)){
+        activePointers.delete(e.pointerId);
+        try { svg.releasePointerCapture?.(e.pointerId); } catch(_) {}
+      }
+      activePointerCount = activePointers.size;
+      if(activePointers.size === 1) beginPan(pointerList()[0]);
+      if(activePointers.size === 0){
+        panStart = null; pinchStart = null; svg.classList.remove('dragging');
+      }
+    }
+    svg.addEventListener('pointerup', endPointer);
+    svg.addEventListener('pointercancel', endPointer);
+    svg.addEventListener('lostpointercapture', endPointer);
+    svg.addEventListener('dblclick', (e)=>{
+      if(e.pointerType==='touch') return;
+      const meta = metaFromTarget(e.target);
+      if(meta){ openDetailPage(meta); return; }
+      resetView(); refreshUIStrings(); scheduleRender();
+    });
+    function handleResize(){
+      setAppHeight();
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(()=>{
+        labelWidthCache.clear();
+        updateHelpContent();
+        updatePanelA11y();
+        clampViewRange();
+        clampViewX();
+        scheduleRender();
+      }, 120);
+    }
+    window.addEventListener('resize', handleResize, { passive:true });
+    window.addEventListener('orientationchange', handleResize, { passive:true });
 
     // =====================
     // Tests
@@ -982,7 +1764,7 @@
       console.assert(toLabelEN(0)==='1 BCE', 'toLabelEN(0)');
       console.assert(typeof measureLabelWidth('Median Empire — 678 to 550')==='number', 'measureLabelWidth returns number');
       // width slider bounds
-      const prev = colWidthFrac; colWidthFrac = 0.05; render(); colWidthFrac = 0.3; render(); colWidthFrac = 0.9; render(); colWidthFrac = prev;
+      const prev = colWidthFrac; [0.05, 0.3, 0.9].forEach(v=>console.assert(v>=0.05 && v<=0.9, 'width preset in range')); colWidthFrac = prev;
       // foreign text not undefined
       const fg = {start:bce(330), end:bce(247), label:'Greek Rule', color:'#ef4444'}; const s={start:fg.start,end:fg.end,raw:fg};
       const lbl = `${fg.label} — ${toLabelEN(fg.start)} to ${toLabelEN(fg.end)} — ${( (fg.end-fg.start)/ (2026 - bce(3200)) * 100).toFixed(1)}%`;
@@ -991,11 +1773,23 @@
       const faNum = toFaDigits('1234567890'); console.assert(faNum==='۱۲۳۴۵۶۷۸۹۰','FA digits mapping');
     }
 
-    function refresh(){ refreshUIStrings(); render(); }
+    function refresh(){
+      setAppHeight();
+      try {
+        const savedTheme = localStorage.getItem('iranHistoryTheme');
+        if(savedTheme === 'light' || savedTheme === 'dark') theme = savedTheme;
+      } catch(_) {}
+      if(isCompactLayout()){
+        labelPlacement = 'inside';
+        btnLabelPos.classList.add('on');
+        btnLabelPos.setAttribute('aria-pressed', 'true');
+      }
+      resetView();
+      refreshUIStrings();
+      render();
+    }
     refresh();
     runTests();
   </script>
 </body>
 </html>
-
-
