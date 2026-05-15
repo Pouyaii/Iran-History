@@ -55,12 +55,15 @@
       position: fixed;
       inset: 0;
       pointer-events: none;
-      opacity: 0.34;
+      opacity: 0.28;
       background-image:
-        linear-gradient(45deg, transparent 0 47%, rgba(201,147,53,0.12) 48% 52%, transparent 53% 100%),
-        linear-gradient(-45deg, transparent 0 47%, rgba(88,169,214,0.09) 48% 52%, transparent 53% 100%);
-      background-size: 38px 38px;
-      mask-image: linear-gradient(to bottom, black, transparent 58%);
+        radial-gradient(circle at 50% 50%, transparent 0 13px, rgba(201,147,53,0.18) 14px 15px, transparent 16px),
+        linear-gradient(30deg, transparent 0 42%, rgba(201,147,53,0.13) 43% 45%, transparent 46% 100%),
+        linear-gradient(150deg, transparent 0 42%, rgba(88,169,214,0.10) 43% 45%, transparent 46% 100%),
+        linear-gradient(90deg, transparent 0 45%, rgba(201,147,53,0.08) 46% 48%, transparent 49% 100%);
+      background-size: 64px 64px;
+      background-position: 0 0, 0 0, 0 0, 32px 0;
+      mask-image: linear-gradient(to bottom, black, transparent 62%);
     }
     header {
       position: relative;
@@ -94,6 +97,7 @@
       box-shadow: 0 1px 0 rgba(255,255,255,0.05) inset, 0 10px 24px rgba(0,0,0,0.18);
     }
     .action-btn:hover, .sheet-close:hover { border-color: color-mix(in srgb, var(--accent) 70%, var(--accent2)); background: color-mix(in srgb, var(--panel) 78%, var(--accent) 12%); }
+    .action-btn.on { border-color: color-mix(in srgb, var(--accent) 68%, var(--accent2)); background: color-mix(in srgb, var(--accent) 20%, var(--panel)); }
     button:focus-visible, input:focus-visible, #viz:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
     #stage { position: relative; min-height: 0; overflow: hidden; }
@@ -261,6 +265,7 @@
       .help-card ul { font-size: 14px; }
       .label { font-size: 8.5px; stroke-width: 1.6px; }
       .note { display: none; }
+      body, #wrap, #stage, #viz, #panel, .mobile-controlbar { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -277,7 +282,6 @@
       </h1>
       <div class="sub">Bottom = earliest (Proto‑Elamite, 3200 BCE). Top = most recent (Islamic Republic of Iran, 2026). Scroll to zoom, drag to pan. Double‑click to reset.</div>
       <div id="top-actions" class="top-actions">
-        <button id="theme-button" class="action-btn" type="button" aria-pressed="false">Light</button>
         <button id="help-button" class="action-btn" type="button" aria-haspopup="dialog" aria-controls="help-overlay">Help</button>
         <button id="reset-button" class="action-btn" type="button">Reset</button>
       </div>
@@ -298,8 +302,7 @@
             <button id="toggle-labelpos" class="toggle" aria-pressed="false">Labels: SIDE</button>
             <button id="toggle-exclude-elam" class="toggle" aria-pressed="false">Exclude Elam: OFF</button>
             <button id="toggle-lang" class="toggle" aria-pressed="false">Language: EN</button>
-          </div>
-          <div class="row" style="margin-top:6px;">
+            <button id="toggle-theme" class="toggle" aria-pressed="false">Theme: Light</button>
             <button id="toggle-golden" class="toggle" aria-pressed="false">Golden Age: OFF</button>
             <button id="toggle-dark" class="toggle" aria-pressed="false">Dark Age: OFF</button>
             <button id="toggle-religion" class="toggle" aria-pressed="false">Religion: OFF</button>
@@ -318,7 +321,7 @@
       <div id="mobile-controlbar" class="mobile-controlbar" aria-label="Timeline controls">
         <button id="mobile-options" class="action-btn" type="button" aria-expanded="false" aria-controls="panel">Options</button>
         <button id="mobile-reset" class="action-btn" type="button">Reset</button>
-        <button id="mobile-theme" class="action-btn" type="button" aria-pressed="false">Light</button>
+        <button id="mobile-elam" class="action-btn" type="button" aria-pressed="false">No Elam</button>
         <button id="mobile-help" class="action-btn" type="button" aria-haspopup="dialog" aria-controls="help-overlay">Help</button>
       </div>
     </div>
@@ -363,10 +366,9 @@
     const elTopActions = document.getElementById('top-actions');
     const btnHelp = document.getElementById('help-button');
     const btnReset = document.getElementById('reset-button');
-    const btnTheme = document.getElementById('theme-button');
     const btnMobileOptions = document.getElementById('mobile-options');
     const btnMobileReset = document.getElementById('mobile-reset');
-    const btnMobileTheme = document.getElementById('mobile-theme');
+    const btnMobileElam = document.getElementById('mobile-elam');
     const btnMobileHelp = document.getElementById('mobile-help');
     const btnPanelClose = document.getElementById('panel-close');
     const elHelpOverlay = document.getElementById('help-overlay');
@@ -384,6 +386,7 @@
     const btnLabelPos = document.getElementById('toggle-labelpos');
     const btnExcludeElam = document.getElementById('toggle-exclude-elam');
     const btnLang = document.getElementById('toggle-lang');
+    const btnTheme = document.getElementById('toggle-theme');
     const btnGolden = document.getElementById('toggle-golden');
     const btnDark = document.getElementById('toggle-dark');
     const btnReligion = document.getElementById('toggle-religion');
@@ -455,8 +458,11 @@
         close: 'Close',
         themeLight: 'Light',
         themeDark: 'Dark',
+        theme: 'Theme',
+        mobileElamOn: 'Elam',
+        mobileElamOff: 'No Elam',
         optionsShort: 'Options',
-        pageKindDynasty: 'Dynasty page',
+        pageKindDynasty: 'Ruling entity page',
         pageKindPeriod: 'Period page',
         pageEmpty: 'Content space reserved for future interactive history modules.'
       },
@@ -486,8 +492,11 @@
         close: 'بستن',
         themeLight: 'روشن',
         themeDark: 'تیره',
+        theme: 'پوسته',
+        mobileElamOn: 'ایلام',
+        mobileElamOff: 'بی‌ایلام',
         optionsShort: 'گزینه‌ها',
-        pageKindDynasty: 'صفحه دودمان',
+        pageKindDynasty: 'صفحه نهاد حاکم',
         pageKindPeriod: 'صفحه دوره',
         pageEmpty: 'این فضا برای ماژول‌های تعاملی آینده نگه داشته شده است.'
       }
@@ -674,10 +683,7 @@
 
     // Use <image> (not foreignObject) to avoid cropping issues
     function shouldRenderFlag(w, h, zoomFrac){
-      const compact = isCompactLayout();
-      const minH = compact ? (zoomFrac > 0.42 ? 16 : 9) : 7;
-      const minW = compact ? 28 : 18;
-      return flagsEnabled && w >= minW && h >= minH;
+      return flagsEnabled && w > 0.75 && h > 0.75;
     }
     function appendFlagImage(x,y,w,h,url,name,scope,start,end){
       if(!url) return null; const urls=buildCandidates(url);
@@ -1445,11 +1451,11 @@
     function applyTheme(){
       document.documentElement.dataset.theme = theme;
       const isLight = theme === 'light';
-      [btnTheme, btnMobileTheme].forEach(btn=>{
-        if(!btn) return;
-        btn.textContent = isLight ? t('themeDark') : t('themeLight');
-        btn.setAttribute('aria-pressed', String(isLight));
-      });
+      if(btnTheme){
+        btnTheme.textContent = `${t('theme')}: ${isLight ? t('themeDark') : t('themeLight')}`;
+        btnTheme.classList.toggle('on', isLight);
+        btnTheme.setAttribute('aria-pressed', String(isLight));
+      }
       try { localStorage.setItem('iranHistoryTheme', theme); } catch(_) {}
     }
     function toggleTheme(){
@@ -1492,6 +1498,11 @@
       [btnReset, btnMobileReset].forEach(btn=>{ if(btn) btn.textContent = t('reset'); });
       [btnHelp, btnMobileHelp].forEach(btn=>{ if(btn) btn.textContent = t('help'); });
       if(btnMobileOptions) btnMobileOptions.textContent = t('optionsShort');
+      if(btnMobileElam){
+        btnMobileElam.textContent = excludeElam ? t('mobileElamOn') : t('mobileElamOff');
+        btnMobileElam.classList.toggle('on', excludeElam);
+        btnMobileElam.setAttribute('aria-pressed', String(excludeElam));
+      }
       if(btnPanelClose) btnPanelClose.textContent = t('close');
       if(btnHelpClose) btnHelpClose.textContent = t('close');
       if(btnDetailClose) btnDetailClose.textContent = t('close');
@@ -1545,7 +1556,15 @@
       scheduleRender();
     }));
     [btnHelp, btnMobileHelp].forEach(btn=>btn && btn.addEventListener('click', openHelp));
-    [btnTheme, btnMobileTheme].forEach(btn=>btn && btn.addEventListener('click', toggleTheme));
+    if(btnTheme) btnTheme.addEventListener('click', toggleTheme);
+    if(btnMobileElam) btnMobileElam.addEventListener('click', ()=>{
+      excludeElam = !excludeElam;
+      btnExcludeElam.classList.toggle('on', excludeElam);
+      btnExcludeElam.setAttribute('aria-pressed', String(excludeElam));
+      resetView();
+      refreshUIStrings();
+      scheduleRender();
+    });
     btnHelpClose.addEventListener('click', closeHelp);
     elHelpOverlay.addEventListener('click', (e)=>{ if(e.target===elHelpOverlay) closeHelp(); });
     btnDetailClose.addEventListener('click', closeDetailPage);
@@ -1624,6 +1643,7 @@
     let longPressTimer = null;
     let longPressTarget = null;
     let longPressOrigin = null;
+    let clickOpenCandidate = null;
     function pointerList(){ return Array.from(activePointers.values()); }
     function pointerDistance(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
     function pointerCenter(a,b){ return { x:(a.x+b.x)/2, y:(a.y+b.y)/2 }; }
@@ -1693,12 +1713,15 @@
       e.preventDefault();
       svg.setPointerCapture?.(e.pointerId);
       activePointers.set(e.pointerId, { x:e.clientX, y:e.clientY, type:e.pointerType });
+      const targetMeta = metaFromTarget(e.target);
+      clickOpenCandidate = (e.pointerType === 'mouse' && targetMeta)
+        ? { id:e.pointerId, x:e.clientX, y:e.clientY, meta:targetMeta, moved:false }
+        : null;
       activePointerCount = activePointers.size;
       svg.classList.add('dragging');
       if((e.pointerType==='touch' || e.pointerType==='pen') && activePointers.size === 1){
-        const meta = metaFromTarget(e.target);
-        if(meta){
-          longPressTarget = meta;
+        if(targetMeta){
+          longPressTarget = targetMeta;
           longPressOrigin = { x:e.clientX, y:e.clientY };
           longPressTimer = setTimeout(()=>{
             openDetailPage(longPressTarget);
@@ -1716,16 +1739,28 @@
       e.preventDefault();
       activePointers.set(e.pointerId, { x:e.clientX, y:e.clientY, type:e.pointerType });
       activePointerCount = activePointers.size;
+      if(clickOpenCandidate && clickOpenCandidate.id === e.pointerId && Math.hypot(e.clientX-clickOpenCandidate.x, e.clientY-clickOpenCandidate.y) > 6){
+        clickOpenCandidate.moved = true;
+      }
       if(longPressOrigin && Math.hypot(e.clientX-longPressOrigin.x, e.clientY-longPressOrigin.y) > 10) clearLongPress();
       if(activePointers.size === 1) updatePan(pointerList()[0]);
       else if(activePointers.size >= 2) updatePinch();
     });
     function endPointer(e){
+      const shouldOpenClick = e.type === 'pointerup'
+        && clickOpenCandidate
+        && clickOpenCandidate.id === e.pointerId
+        && !clickOpenCandidate.moved
+        && activePointers.size === 1;
       clearLongPress();
       if(activePointers.has(e.pointerId)){
         activePointers.delete(e.pointerId);
         try { svg.releasePointerCapture?.(e.pointerId); } catch(_) {}
       }
+      if(shouldOpenClick){
+        openDetailPage(clickOpenCandidate.meta);
+      }
+      if(clickOpenCandidate && clickOpenCandidate.id === e.pointerId) clickOpenCandidate = null;
       activePointerCount = activePointers.size;
       if(activePointers.size === 1) beginPan(pointerList()[0]);
       if(activePointers.size === 0){
