@@ -1,0 +1,550 @@
+{
+  "basePatternConfig": {
+    "patternType": "girih",
+    "configPreset": "custom",
+    "complexity": "balanced",
+    "quality": "balanced",
+    "fieldLayout": "diamond",
+    "gridPhase": 0,
+    "mainSides": 12,
+    "fillMode": "none",
+    "animationPreset": "none",
+    "metaMode": false,
+    "curve": 100,
+    "fillOpacity": 0,
+    "patternOpacity": 100,
+    "lineWeight": 130,
+    "tileScale": 120,
+    "overscan": 130,
+    "ornamentScale": 100,
+    "haloSpread": 130,
+    "mandalaDepth": 145,
+    "connectorTension": 100,
+    "detailDensity": 100,
+    "glow": 0
+  },
+  "palettes": {
+    "dynasty": {
+      "protoElamite": {
+        "label": "Proto-Elamite",
+        "bg": "#241812",
+        "line": "#f0c28e",
+        "accent": "#9f5b32",
+        "gold": "#d39a4b",
+        "rationale": "clay tablets, early urban earth tones, warm ochre"
+      },
+      "oldElamite": {
+        "label": "Old Elamite",
+        "bg": "#1f1715",
+        "line": "#e8c09a",
+        "accent": "#2d8f91",
+        "gold": "#b9783e",
+        "rationale": "Susa brick, bronze, early temple teal"
+      },
+      "middleElamite": {
+        "label": "Middle Elamite",
+        "bg": "#22150f",
+        "line": "#f1cfaa",
+        "accent": "#397f83",
+        "gold": "#c98245",
+        "rationale": "Chogha Zanbil baked brick and glazed blue-green shadow"
+      },
+      "neoElamite": {
+        "label": "Neo-Elamite",
+        "bg": "#1a1820",
+        "line": "#ead5b9",
+        "accent": "#6b7895",
+        "gold": "#b87942",
+        "rationale": "late Elam bronze, smoke-indigo, carved stone"
+      },
+      "medianEmpire": {
+        "label": "Median Empire",
+        "bg": "#171a25",
+        "line": "#eadcc4",
+        "accent": "#7c2f45",
+        "gold": "#c69b55",
+        "rationale": "Zagros mountain night, wool crimson, bronze fittings"
+      },
+      "assyroBabylonianControl": {
+        "label": "Assyro-Babylonian Control",
+        "bg": "#090d16",
+        "line": "#d9c8a2",
+        "accent": "#244da1",
+        "gold": "#c29a3a",
+        "rationale": "black basalt, Babylonian blue, imperial gold"
+      },
+      "achaemenidEmpire": {
+        "label": "Achaemenid Empire",
+        "bg": "#201a13",
+        "line": "#e8d7b8",
+        "accent": "#679e9c",
+        "gold": "#b98846",
+        "rationale": "Persepolis limestone relief, turquoise inlay, imperial gold"
+      },
+      "macedonianArgeadRule": {
+        "label": "Macedonian/Argead Rule",
+        "bg": "#171326",
+        "line": "#f0e7d2",
+        "accent": "#5b4bb2",
+        "gold": "#d5a841",
+        "rationale": "Macedonian purple-blue, marble, sun-gold"
+      },
+      "seleucidEmpireInIran": {
+        "label": "Seleucid Empire in Iran",
+        "bg": "#151b2a",
+        "line": "#e9e2d2",
+        "accent": "#3d76b3",
+        "gold": "#b89055",
+        "rationale": "Hellenistic marble, cobalt, bronze coinage"
+      },
+      "parthianEmpire": {
+        "label": "Parthian Empire",
+        "bg": "#1f1611",
+        "line": "#ead6b7",
+        "accent": "#8f4338",
+        "gold": "#bd8b4b",
+        "rationale": "horse-archer leather, dusty red, steppe bronze"
+      },
+      "sasanianEmpire": {
+        "label": "Sasanian Empire",
+        "bg": "#17121f",
+        "line": "#f9e0b6",
+        "accent": "#a23f4b",
+        "gold": "#e8b056",
+        "rationale": "garnet silk, silver plates, royal fire-gold"
+      },
+      "rashidunCaliphate": {
+        "label": "Rashidun Caliphate",
+        "bg": "#111b13",
+        "line": "#efe1c1",
+        "accent": "#2f7a4f",
+        "gold": "#c7a35a",
+        "rationale": "desert parchment, early Islamic green, austere gold"
+      },
+      "umayyadCaliphate": {
+        "label": "Umayyad Caliphate",
+        "bg": "#182015",
+        "line": "#efe4c9",
+        "accent": "#2d8a74",
+        "gold": "#d1a44f",
+        "rationale": "Damascus green, desert stone, early caliphal gold"
+      },
+      "abbasidCaliphate": {
+        "label": "Abbasid Caliphate",
+        "bg": "#050506",
+        "line": "#f0dfb8",
+        "accent": "#5e4a87",
+        "gold": "#d6a94b",
+        "rationale": "black banner, Baghdad ink, gilded manuscript glow"
+      },
+      "tahiridEmirate": {
+        "label": "Tahirid Emirate",
+        "bg": "#101f2b",
+        "line": "#e8d8bb",
+        "accent": "#2f7e99",
+        "gold": "#b98246",
+        "rationale": "Nishapur blue, Khurasani brick, regional revival"
+      },
+      "saffaridEmirate": {
+        "label": "Saffarid Emirate",
+        "bg": "#21130e",
+        "line": "#edd1b4",
+        "accent": "#8a4935",
+        "gold": "#c47a38",
+        "rationale": "Sistan copper, hammered steel, frontier earth"
+      },
+      "samanidEmpire": {
+        "label": "Samanid Empire",
+        "bg": "#13262c",
+        "line": "#f3dfbb",
+        "accent": "#33a3a3",
+        "gold": "#c17d42",
+        "rationale": "Bukhara turquoise, brick mausoleum, Persian renaissance warmth"
+      },
+      "ziyaridDynasty": {
+        "label": "Ziyarid Dynasty",
+        "bg": "#10211d",
+        "line": "#d9e6d5",
+        "accent": "#3b8f75",
+        "gold": "#a77445",
+        "rationale": "Caspian forest, mist, mountain bronze"
+      },
+      "buyidConfederation": {
+        "label": "Buyid Confederation",
+        "bg": "#121522",
+        "line": "#ead9bd",
+        "accent": "#4b6f9f",
+        "gold": "#b8733f",
+        "rationale": "Daylamite highlands, Shi‘i courtly indigo, copper"
+      },
+      "ghaznavidEmpire": {
+        "label": "Ghaznavid Empire",
+        "bg": "#0d1a32",
+        "line": "#eee1ca",
+        "accent": "#417ed1",
+        "gold": "#c99a4b",
+        "rationale": "Ghazni lapis, ivory, militarized gold"
+      },
+      "greatSeljukEmpire": {
+        "label": "Great Seljuk Empire",
+        "bg": "#102538",
+        "line": "#f0dfbf",
+        "accent": "#2ba7b3",
+        "gold": "#ca8d45",
+        "rationale": "turquoise tile, brick geometry, star motifs"
+      },
+      "khwarazmianEmpire": {
+        "label": "Khwarazmian Empire",
+        "bg": "#11263a",
+        "line": "#e8d7b8",
+        "accent": "#3f9fb5",
+        "gold": "#b99a58",
+        "rationale": "Oxus blue, desert sand, Khwarezmian ceramics"
+      },
+      "mongolConquestIntermezzo": {
+        "label": "Mongol Conquest Intermezzo",
+        "bg": "#0d0d0e",
+        "line": "#cbbda5",
+        "accent": "#7a2b22",
+        "gold": "#8e7346",
+        "rationale": "ash, burned earth, iron-red rupture"
+      },
+      "ilkhanate": {
+        "label": "Ilkhanate",
+        "bg": "#111b2d",
+        "line": "#eadfc7",
+        "accent": "#356bc0",
+        "gold": "#d1a34d",
+        "rationale": "Mongol-Iranian manuscript blue and gilded court art"
+      },
+      "jalayirids": {
+        "label": "Jalayirids",
+        "bg": "#171328",
+        "line": "#ebd7c1",
+        "accent": "#6753b0",
+        "gold": "#c99550",
+        "rationale": "Baghdad/Tebrizi manuscript violet, lapis, gold"
+      },
+      "chobanids": {
+        "label": "Chobanids",
+        "bg": "#17191a",
+        "line": "#dfd0b5",
+        "accent": "#6f775f",
+        "gold": "#b08347",
+        "rationale": "steppe slate, military bronze, muted green"
+      },
+      "injuids": {
+        "label": "Injuids",
+        "bg": "#211522",
+        "line": "#f0d6cc",
+        "accent": "#b45d77",
+        "gold": "#c59a55",
+        "rationale": "Shiraz rose, poetic court colour, manuscript gold"
+      },
+      "muzaffarids": {
+        "label": "Muzaffarids",
+        "bg": "#201217",
+        "line": "#efd9c2",
+        "accent": "#9f3e53",
+        "gold": "#c59b4e",
+        "rationale": "desert ruby, court turbulence, warm tilework"
+      },
+      "sarbadars": {
+        "label": "Sarbadars",
+        "bg": "#170c0f",
+        "line": "#e8cfc0",
+        "accent": "#a6312f",
+        "gold": "#aa7f45",
+        "rationale": "revolt crimson, smoke, rough brass"
+      },
+      "kartids": {
+        "label": "Kartids",
+        "bg": "#112426",
+        "line": "#ead8bd",
+        "accent": "#2f9d96",
+        "gold": "#b97943",
+        "rationale": "Herat turquoise, terracotta, regional Persianate glow"
+      },
+      "timuridEmpire": {
+        "label": "Timurid Empire",
+        "bg": "#071b35",
+        "line": "#f2e2c6",
+        "accent": "#1fa6d8",
+        "gold": "#d3a64f",
+        "rationale": "Samarkand blue, emerald tile, imperial gold"
+      },
+      "qaraQoyunlu": {
+        "label": "Qara Qoyunlu",
+        "bg": "#070706",
+        "line": "#ded0b6",
+        "accent": "#2d4650",
+        "gold": "#b17842",
+        "rationale": "black sheep confederation, dark wool, copper"
+      },
+      "aqQoyunlu": {
+        "label": "Aq Qoyunlu",
+        "bg": "#1f211d",
+        "line": "#f1ead6",
+        "accent": "#5c8792",
+        "gold": "#bf8546",
+        "rationale": "white sheep confederation, ivory wool, Turkoman blue"
+      },
+      "safavidEmpire": {
+        "label": "Safavid Empire",
+        "bg": "#061b25",
+        "line": "#f5eed2",
+        "accent": "#24c4d5",
+        "gold": "#e0b04e",
+        "rationale": "Safavid turquoise tile, Isfahan cream, royal gold"
+      },
+      "hotakOccupation": {
+        "label": "Hotak Occupation",
+        "bg": "#10150f",
+        "line": "#e1d0b4",
+        "accent": "#2d6b45",
+        "gold": "#a24b37",
+        "rationale": "Afghan green, rust-red disruption, subdued parchment"
+      },
+      "safavidRestoration": {
+        "label": "Safavid Restoration",
+        "bg": "#092126",
+        "line": "#f1e5c6",
+        "accent": "#32aaa8",
+        "gold": "#c99a45",
+        "rationale": "revived turquoise and gold, slightly muted after rupture"
+      },
+      "afsharidEmpire": {
+        "label": "Afsharid Empire",
+        "bg": "#111923",
+        "line": "#e7d8bd",
+        "accent": "#647a8f",
+        "gold": "#d0a04b",
+        "rationale": "military steel, campaign navy, Naderid gold"
+      },
+      "zandDynasty": {
+        "label": "Zand Dynasty",
+        "bg": "#142018",
+        "line": "#f0ddc5",
+        "accent": "#559c70",
+        "gold": "#c58b52",
+        "rationale": "Shiraz garden green, humane warmth, soft rose-earth"
+      },
+      "qajarDynasty": {
+        "label": "Qajar Dynasty",
+        "bg": "#1c1320",
+        "line": "#f8ded8",
+        "accent": "#d85e81",
+        "gold": "#dcb369",
+        "rationale": "Qajar rose, mirrorwork glow, court gold"
+      },
+      "pahlaviDynasty": {
+        "label": "Pahlavi Dynasty",
+        "bg": "#111b24",
+        "line": "#eef1e8",
+        "accent": "#2f8f64",
+        "gold": "#c1c6c8",
+        "rationale": "modern state green-white-red constrained into steel/silver modernism"
+      },
+      "islamicRepublicOfIran": {
+        "label": "Islamic Republic of Iran",
+        "bg": "#08140f",
+        "line": "#e8efe2",
+        "accent": "#1f8a4c",
+        "gold": "#b3332e",
+        "rationale": "green, white, red, black-calligraphic revolutionary palette"
+      }
+    },
+    "goldenAge": {
+      "achaemenid": {
+        "label": "Achaemenid",
+        "bg": "#241a0d",
+        "line": "#f4dfb5",
+        "accent": "#2f9aa0",
+        "gold": "#e0aa43",
+        "rationale": "imperial gold, Persepolis stone, turquoise/lapis ceremonial polish"
+      },
+      "sasanian": {
+        "label": "Sasanian",
+        "bg": "#1b1020",
+        "line": "#ffe2b8",
+        "accent": "#b7424f",
+        "gold": "#f0b84e",
+        "rationale": "royal garnet, fire-gold, silver plate prestige"
+      },
+      "persianateRenaissance": {
+        "label": "Persianate Renaissance",
+        "bg": "#0e2032",
+        "line": "#f3e3c7",
+        "accent": "#2f89c5",
+        "gold": "#d0a44f",
+        "rationale": "manuscript lapis, paper cream, Bukhara/Samanid literary glow"
+      },
+      "safavid": {
+        "label": "Safavid",
+        "bg": "#052333",
+        "line": "#fff0cf",
+        "accent": "#20c8d8",
+        "gold": "#e6b34e",
+        "rationale": "Isfahan dome turquoise, cream tile, luminous gold"
+      }
+    },
+    "darkAge": {
+      "assyroBabylonian": {
+        "label": "Assyro-Babylonian",
+        "bg": "#07080d",
+        "line": "#bfb399",
+        "accent": "#1d3f86",
+        "gold": "#8a6c37",
+        "rationale": "occupation basalt, dark lapis, muted tribute gold"
+      },
+      "hellenistic": {
+        "label": "Hellenistic",
+        "bg": "#11111a",
+        "line": "#d8d2c3",
+        "accent": "#4e438f",
+        "gold": "#9b7b45",
+        "rationale": "marble dislocation, royal purple, reduced Iranian warmth"
+      },
+      "conquest": {
+        "label": "Conquest",
+        "bg": "#120b08",
+        "line": "#d8b89a",
+        "accent": "#9b3c2b",
+        "gold": "#8a6437",
+        "rationale": "dust, ember, iron, rupture"
+      },
+      "mongolConquest": {
+        "label": "Mongol Conquest",
+        "bg": "#050505",
+        "line": "#b9ad9b",
+        "accent": "#86241d",
+        "gold": "#6e5a3b",
+        "rationale": "ash-black, blood rust, extinguished gold"
+      },
+      "timuridInvasions": {
+        "label": "Timurid Invasions",
+        "bg": "#070e18",
+        "line": "#bfc7cf",
+        "accent": "#1e5d83",
+        "gold": "#8f6b3b",
+        "rationale": "storm blue, iron, cold campaign light"
+      },
+      "hotak": {
+        "label": "Hotak",
+        "bg": "#0b0d0a",
+        "line": "#cdbca3",
+        "accent": "#255e3e",
+        "gold": "#874331",
+        "rationale": "soot, Afghan green, rust-red collapse"
+      },
+      "qajar": {
+        "label": "Qajar",
+        "bg": "#161016",
+        "line": "#d2beb9",
+        "accent": "#8d4a63",
+        "gold": "#8f7a52",
+        "rationale": "faded rose, smoke, financial-political twilight"
+      }
+    },
+    "religion": {
+      "polytheism": {
+        "label": "Polytheism",
+        "bg": "#24170f",
+        "line": "#e8c08f",
+        "accent": "#8b6b2f",
+        "gold": "#c48b3d",
+        "rationale": "ancient temple clay, idol bronze, ochre ritual fire"
+      },
+      "zoroastrianism": {
+        "label": "Zoroastrianism",
+        "bg": "#1d0e08",
+        "line": "#ffe3b0",
+        "accent": "#d4582a",
+        "gold": "#f0b642",
+        "rationale": "sacred fire, ash, saffron-gold light"
+      },
+      "sunniIslam": {
+        "label": "Sunni Islam",
+        "bg": "#0b1b13",
+        "line": "#f0e6cc",
+        "accent": "#2e8b57",
+        "gold": "#d4ad54",
+        "rationale": "green, parchment, calligraphic gold"
+      },
+      "twelverShiaIslam": {
+        "label": "Twelver Shia Islam",
+        "bg": "#07120d",
+        "line": "#efe6d2",
+        "accent": "#1d7f54",
+        "gold": "#b52b2b",
+        "rationale": "shrine green, mourning black, Karbala red, gilded devotion"
+      }
+    },
+    "foreignRule": {
+      "assyroBabylonianRule": {
+        "label": "Assyro-Babylonian Rule",
+        "bg": "#06080f",
+        "line": "#d0c1a0",
+        "accent": "#214a9a",
+        "gold": "#ae8b38",
+        "rationale": "basalt, Babylon blue, tribute gold"
+      },
+      "greekRule": {
+        "label": "Greek Rule",
+        "bg": "#121526",
+        "line": "#ebe7da",
+        "accent": "#4d71b8",
+        "gold": "#c99d45",
+        "rationale": "marble, Hellenistic blue, Macedonian sun gold"
+      },
+      "arabCaliphateRule": {
+        "label": "Arab Caliphate Rule",
+        "bg": "#07100b",
+        "line": "#eadfbd",
+        "accent": "#26724b",
+        "gold": "#c79b45",
+        "rationale": "caliphal green, desert parchment, gold"
+      },
+      "turkicRule": {
+        "label": "Turkic Rule",
+        "bg": "#0d2230",
+        "line": "#eee0c3",
+        "accent": "#28a7b2",
+        "gold": "#c88b3f",
+        "rationale": "Turkic turquoise, steppe sky, brick-and-bronze court art"
+      },
+      "mongolRule": {
+        "label": "Mongol Rule",
+        "bg": "#0b0d0f",
+        "line": "#d6c9ad",
+        "accent": "#6b5f4a",
+        "gold": "#9b733d",
+        "rationale": "steppe iron, horse tack leather, subdued court gold"
+      },
+      "timuridTurkmenRule": {
+        "label": "Timurid & Turkmen Rule",
+        "bg": "#07172e",
+        "line": "#eee0c2",
+        "accent": "#1d91c6",
+        "gold": "#d19a46",
+        "rationale": "Timurid blue, Turkmen textile warmth, gilded tile"
+      },
+      "afghanHotakOccupation": {
+        "label": "Afghan Hotak Occupation",
+        "bg": "#0c120d",
+        "line": "#dbc8aa",
+        "accent": "#27633f",
+        "gold": "#9b4935",
+        "rationale": "Afghan green and rust-red occupation palette"
+      },
+      "britishRussianInfluence": {
+        "label": "British & Russian Influence",
+        "bg": "#10131b",
+        "line": "#e6e1d7",
+        "accent": "#244b7a",
+        "gold": "#a93035",
+        "rationale": "imperial navy, Russian red, muted Qajar-era pressure"
+      }
+    }
+  }
+}
